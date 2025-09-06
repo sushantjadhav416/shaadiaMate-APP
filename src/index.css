@@ -159,6 +159,15 @@ All colors MUST be HSL.
     @apply bg-white/60 backdrop-blur-md border border-white/20;
   }
 
+  /* Custom shadow utilities mapped to design tokens */
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
