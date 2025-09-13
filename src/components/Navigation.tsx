@@ -20,9 +20,11 @@ import { cn } from '@/lib/utils';
 interface NavigationProps {
   currentPage: string;
   onPageChange: (page: string) => void;
+  userProfile?: any;
+  onSignOut?: () => void;
 }
 
-const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
+const Navigation = ({ currentPage, onPageChange, userProfile, onSignOut }: NavigationProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -96,9 +98,11 @@ const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
 
           <div className="h-6 w-px bg-border"></div>
 
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={onSignOut}>
             <User className="h-5 w-5 mr-2" />
-            <span className="font-medium">Priya</span>
+            <span className="font-medium">
+              {userProfile?.display_name || userProfile?.first_name || 'User'}
+            </span>
           </Button>
         </div>
       </nav>
@@ -133,9 +137,9 @@ const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
               <NavItem key={item.id} item={item} mobile />
             ))}
             <div className="pt-4 border-t border-border/50">
-              <Button variant="ghost" className="w-full justify-start">
+              <Button variant="ghost" className="w-full justify-start" onClick={onSignOut}>
                 <User className="h-5 w-5 mr-3" />
-                <span>Profile Settings</span>
+                <span>Sign Out ({userProfile?.display_name || 'User'})</span>
               </Button>
             </div>
           </div>
