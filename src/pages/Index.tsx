@@ -8,10 +8,10 @@ import AIAssistant from '@/components/AIAssistant';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Set to false for login flow
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Users must login first
 
   if (!isLoggedIn) {
-    return <Login />;
+    return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
   }
 
   const renderPage = () => {

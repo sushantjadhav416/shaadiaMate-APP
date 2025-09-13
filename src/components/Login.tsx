@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Heart, Mail, Phone, Shield, Users, Store, Calendar } from 'lucide-react';
 
-const Login = () => {
+const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
   const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [userRole, setUserRole] = useState<string>('');
 
@@ -120,7 +120,7 @@ const Login = () => {
                 </div>
 
                 {/* Login Button */}
-                <Button className="hero-button w-full mt-6">
+                <Button className="hero-button w-full mt-6" onClick={onLoginSuccess}>
                   Sign In
                 </Button>
 
@@ -178,7 +178,7 @@ const Login = () => {
                   </Select>
                 </div>
 
-                <Button className="hero-button w-full">
+                <Button className="hero-button w-full" onClick={onLoginSuccess}>
                   Create Account
                 </Button>
               </TabsContent>
