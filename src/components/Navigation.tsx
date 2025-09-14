@@ -98,7 +98,12 @@ const Navigation = ({ currentPage, onPageChange, userProfile, onSignOut }: Navig
 
           <div className="h-6 w-px bg-border"></div>
 
-          <Button variant="ghost" size="sm" onClick={onSignOut}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onSignOut}
+            className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+          >
             <User className="h-5 w-5 mr-2" />
             <span className="font-medium">
               {userProfile?.display_name || userProfile?.first_name || 'User'}
@@ -137,9 +142,13 @@ const Navigation = ({ currentPage, onPageChange, userProfile, onSignOut }: Navig
               <NavItem key={item.id} item={item} mobile />
             ))}
             <div className="pt-4 border-t border-border/50">
-              <Button variant="ghost" className="w-full justify-start" onClick={onSignOut}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start hover:bg-destructive/10 hover:text-destructive transition-colors" 
+                onClick={onSignOut}
+              >
                 <User className="h-5 w-5 mr-3" />
-                <span>Sign Out ({userProfile?.display_name || 'User'})</span>
+                <span>Sign Out ({userProfile?.display_name || userProfile?.first_name || 'User'})</span>
               </Button>
             </div>
           </div>

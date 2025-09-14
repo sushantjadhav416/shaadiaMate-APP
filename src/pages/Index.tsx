@@ -125,6 +125,8 @@ const Index = () => {
         userProfile={userProfile}
         onSignOut={async () => {
           await supabase.auth.signOut();
+          setUserProfile(null);
+          setCurrentPage('dashboard');
         }}
       />
       <main className="pb-20 lg:pb-0">

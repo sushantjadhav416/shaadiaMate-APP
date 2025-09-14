@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
   const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [userRole, setUserRole] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -20,6 +21,22 @@ const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
     phone: ''
   });
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if user is already signed in and fetch their profile
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        setUserProfile(profile);
+      }
+    };
+    checkUser();
+  }, []);
 
   const roles = [
     { value: 'admin', label: 'Admin', icon: Shield, description: 'Manage everything' },
@@ -124,8 +141,12 @@ const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
         {/* Login Form */}
         <Card className="wedding-card animate-glow">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-serif">Welcome Back</CardTitle>
-            <CardDescription>Sign in to continue planning your special day</CardDescription>
+            <CardTitle className="text-2xl font-serif">
+              {userProfile ? `Welcome Back, ${userProfile.display_name || userProfile.first_name || 'User'}!` : 'Welcome Back'}
+            </CardTitle>
+            <CardDescription>
+              {userProfile ? 'You are already signed in' : 'Sign in to continue planning your special day'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
