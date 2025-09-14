@@ -16,7 +16,7 @@ import {
   Bell
 } from 'lucide-react';
 
-const Dashboard = () => {
+const Dashboard = ({ userProfile }: { userProfile?: any }) => {
   // Mock data
   const weddingDate = new Date('2024-12-15');
   const today = new Date();
@@ -48,7 +48,7 @@ const Dashboard = () => {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-4xl font-serif font-bold gradient-text mb-2">
-            Welcome back, Priya! 
+            Welcome back, {userProfile?.display_name || userProfile?.first_name || 'User'}! 
           </h1>
           <p className="text-muted-foreground text-lg">
             Let's make your special day perfect ✨

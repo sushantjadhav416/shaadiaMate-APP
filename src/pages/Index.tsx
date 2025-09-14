@@ -77,7 +77,7 @@ const Index = () => {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard userProfile={userProfile} />;
       case 'events':
         return <EventScheduler />;
       case 'budget':
