@@ -14,6 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
+      budget_items: {
+        Row: {
+          actual_cost: number | null
+          category: string
+          created_at: string
+          estimated_cost: number | null
+          id: string
+          item_name: string
+          notes: string | null
+          payment_date: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          vendor: string | null
+        }
+        Insert: {
+          actual_cost?: number | null
+          category: string
+          created_at?: string
+          estimated_cost?: number | null
+          id?: string
+          item_name: string
+          notes?: string | null
+          payment_date?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          vendor?: string | null
+        }
+        Update: {
+          actual_cost?: number | null
+          category?: string
+          created_at?: string
+          estimated_cost?: number | null
+          id?: string
+          item_name?: string
+          notes?: string | null
+          payment_date?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          vendor?: string | null
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_date: string | null
+          id: string
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          venue: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          id?: string
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          venue?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          id?: string
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
+      guests: {
+        Row: {
+          address: string | null
+          created_at: string
+          dietary_restrictions: string | null
+          email: string | null
+          first_name: string
+          id: string
+          invitation_sent: boolean | null
+          last_name: string
+          notes: string | null
+          phone: string | null
+          plus_one: boolean | null
+          relationship: string | null
+          rsvp_status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          dietary_restrictions?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          invitation_sent?: boolean | null
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          plus_one?: boolean | null
+          relationship?: string | null
+          rsvp_status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          dietary_restrictions?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          invitation_sent?: boolean | null
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          plus_one?: boolean | null
+          relationship?: string | null
+          rsvp_status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -47,6 +182,108 @@ export type Database = {
           role?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          category: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vendors: {
+        Row: {
+          address: string | null
+          booking_date: string | null
+          category: string
+          contact_person: string | null
+          cost: number | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          rating: number | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          booking_date?: string | null
+          category: string
+          contact_person?: string | null
+          cost?: number | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          booking_date?: string | null
+          category?: string
+          contact_person?: string | null
+          cost?: number | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
