@@ -1,275 +1,373 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Users, 
-  Plus,
-  Edit,
-  Star,
-  Flower,
-  Music,
-  Camera,
-  Utensils
-} from 'lucide-react';
+import React, { useState } from "react";
+import { Calendar, Users, MapPin, Clock, Plus, Edit, Eye, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
+import { useEvents } from "@/hooks/useEvents";
+import { RitualTemplates } from "./RitualTemplates";
 
 const EventScheduler = () => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [view, setView] = useState<'month' | 'week' | 'day'>('month');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [view, setView] = useState("timeline");
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    description: '',
+    event_date: '',
+    event_time: '',
+    venue: '',
+    event_type: 'wedding',
+    ritual_category: '',
+    expected_attendees: '',
+  });
 
-  const events = [
-    {
-      id: 1,
-      name: 'Haldi Ceremony',
-      date: '2024-12-10',
-      time: '10:00 AM',
-      venue: 'Family Home - Garden Area',
-      attendees: 25,
-      status: 'confirmed',
-      color: 'bg-yellow-100 border-yellow-300',
-      icon: Flower,
-      description: 'Traditional turmeric ceremony with close family'
-    },
-    {
-      id: 2,
-      name: 'Mehendi Function',
-      date: '2024-12-12',
-      time: '3:00 PM',
-      venue: 'Mandap Garden Venue',
-      attendees: 50,
-      status: 'planning',
-      color: 'bg-green-100 border-green-300',
-      icon: Star,
-      description: 'Intricate henna designs and ladies sangeet'
-    },
-    {
-      id: 3,
-      name: 'Sangeet Night',
-      date: '2024-12-13',
-      time: '7:00 PM',
-      venue: 'Hotel Ballroom',
-      attendees: 150,
-      status: 'confirmed',
-      color: 'bg-purple-100 border-purple-300',
-      icon: Music,
-      description: 'Dance performances and musical celebration'
-    },
-    {
-      id: 4,
-      name: 'Wedding Ceremony',
-      date: '2024-12-15',
-      time: '11:30 AM',
-      venue: 'Royal Marriage Hall',
-      attendees: 200,
-      status: 'confirmed',
-      color: 'bg-pink-100 border-pink-300',
-      icon: Star,
-      description: 'Sacred wedding rituals and vows'
-    },
-    {
-      id: 5,
-      name: 'Reception',
-      date: '2024-12-15',
-      time: '7:00 PM',
-      venue: 'Grand Banquet Hall',
-      attendees: 300,
-      status: 'confirmed',
-      color: 'bg-blue-100 border-blue-300',
-      icon: Utensils,
-      description: 'Dinner and celebration with all guests'
-    }
-  ];
+  const { events, createEvent, isCreating } = useEvents();
 
-  const EventCard = ({ event }: { event: typeof events[0] }) => (
-    <Card className={`wedding-card hover:shadow-lg transition-all duration-300 border-l-4 ${event.color}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <event.icon className="h-5 w-5 text-primary" />
+  const handleCreateEvent = () => {
+    createEvent({
+      ...newEvent,
+      expected_attendees: newEvent.expected_attendees ? parseInt(newEvent.expected_attendees) : undefined,
+    });
+    setNewEvent({
+      title: '',
+      description: '',
+      event_date: '',
+      event_time: '',
+      venue: '',
+      event_type: 'wedding',
+      ritual_category: '',
+      expected_attendees: '',
+    });
+    setShowAddDialog(false);
+  };
+
+  const EventCard = ({ event }: { event: any }) => {
+    const getRitualIcon = (category: string) => {
+      const icons: { [key: string]: string } = {
+        engagement: '💍',
+        haldi: '💛',
+        mehendi: '🌿',
+        sangeet: '🎵',
+        tilaka: '🕉️',
+        baraat: '🐎',
+        jaimala: '🌺',
+        saat_phere: '🔥',
+        sindoor: '❤️',
+        bidaai: '👋',
+        griha_pravesh: '🏠',
+        reception: '🎉',
+      };
+      return icons[category] || '✨';
+    };
+
+    const getStatusColor = (status: string) => {
+      const colors: { [key: string]: string } = {
+        confirmed: 'bg-green-100 border-green-300 text-green-800',
+        planning: 'bg-yellow-100 border-yellow-300 text-yellow-800',
+        draft: 'bg-gray-100 border-gray-300 text-gray-800',
+      };
+      return colors[status] || 'bg-gray-100 border-gray-300 text-gray-800';
+    };
+
+    return (
+      <Card className={`${getStatusColor(event.status)} border-2 hover:shadow-md transition-shadow`}>
+        <CardHeader className="pb-2">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{getRitualIcon(event.ritual_category)}</span>
+              <div>
+                <CardTitle className="text-lg">{event.title}</CardTitle>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    <span>{event.event_time || 'Time TBD'}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    <span>{event.expected_attendees || 0} guests</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-lg">{event.name}</CardTitle>
-              <CardDescription className="flex items-center space-x-4 mt-1">
-                <span className="flex items-center">
-                  <Clock className="h-4 w-4 mr-1" />
-                  {event.time}
-                </span>
-                <span className="flex items-center">
-                  <Users className="h-4 w-4 mr-1" />
-                  {event.attendees}
-                </span>
-              </CardDescription>
+            <Badge variant={event.status === "confirmed" ? "default" : "secondary"}>
+              {event.status}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex items-center gap-1 text-sm">
+              <MapPin className="h-3 w-3" />
+              <span>{event.venue || 'Venue TBD'}</span>
+            </div>
+            <p className="text-sm text-muted-foreground">{event.description}</p>
+            <div className="flex gap-2 mt-3">
+              <Button size="sm" variant="outline" className="flex-1">
+                <Edit className="h-3 w-3 mr-1" />
+                Edit
+              </Button>
+              <Button size="sm" variant="outline" className="flex-1">
+                <Eye className="h-3 w-3 mr-1" />
+                View Details
+              </Button>
             </div>
           </div>
-          <Badge 
-            variant={event.status === 'confirmed' ? 'default' : 'secondary'}
-            className="capitalize"
-          >
-            {event.status}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex items-center text-muted-foreground">
-            <MapPin className="h-4 w-4 mr-2" />
-            <span className="text-sm">{event.venue}</span>
-          </div>
-          <p className="text-sm text-muted-foreground">{event.description}</p>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" size="sm">
-              <Edit className="h-4 w-4 mr-1" />
-              Edit
-            </Button>
-            <Button size="sm">
-              View Details
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
+  // Dialog for adding new events
   const AddEventDialog = () => (
-    <Dialog>
+    <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
       <DialogTrigger asChild>
-        <Button className="hero-button">
+        <Button size="lg" className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600">
           <Plus className="h-4 w-4 mr-2" />
           Add Event
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Event</DialogTitle>
+          <DialogTitle>Add New Wedding Event</DialogTitle>
           <DialogDescription>
-            Create a new event for your wedding celebration
+            Create a new event for your wedding celebration timeline.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="eventName">Event Name</Label>
-            <Input id="eventName" placeholder="e.g., Engagement Ceremony" />
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="event-name" className="text-right">
+              Event
+            </Label>
+            <Input 
+              id="event-name" 
+              placeholder="Event name" 
+              className="col-span-3"
+              value={newEvent.title}
+              onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+            />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="eventDate">Date</Label>
-              <Input id="eventDate" type="date" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="eventTime">Time</Label>
-              <Input id="eventTime" type="time" />
-            </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="event-type" className="text-right">
+              Type
+            </Label>
+            <Select 
+              value={newEvent.event_type} 
+              onValueChange={(value) => setNewEvent({ ...newEvent, event_type: value })}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select event type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pre-wedding">Pre-Wedding</SelectItem>
+                <SelectItem value="wedding">Wedding</SelectItem>
+                <SelectItem value="post-wedding">Post-Wedding</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="venue">Venue</Label>
-            <Input id="venue" placeholder="Event location" />
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="ritual-category" className="text-right">
+              Ritual
+            </Label>
+            <Select 
+              value={newEvent.ritual_category} 
+              onValueChange={(value) => setNewEvent({ ...newEvent, ritual_category: value })}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select ritual" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="engagement">Engagement</SelectItem>
+                <SelectItem value="haldi">Haldi</SelectItem>
+                <SelectItem value="mehendi">Mehendi</SelectItem>
+                <SelectItem value="sangeet">Sangeet</SelectItem>
+                <SelectItem value="tilaka">Tilaka</SelectItem>
+                <SelectItem value="baraat">Baraat</SelectItem>
+                <SelectItem value="jaimala">Jaimala</SelectItem>
+                <SelectItem value="saat_phere">Saat Phere</SelectItem>
+                <SelectItem value="sindoor">Sindoor</SelectItem>
+                <SelectItem value="bidaai">Bidaai</SelectItem>
+                <SelectItem value="griha_pravesh">Griha Pravesh</SelectItem>
+                <SelectItem value="reception">Reception</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="attendees">Expected Attendees</Label>
-            <Input id="attendees" type="number" placeholder="Number of guests" />
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="event-date" className="text-right">
+              Date
+            </Label>
+            <Input 
+              id="event-date" 
+              type="date" 
+              className="col-span-3"
+              value={newEvent.event_date}
+              onChange={(e) => setNewEvent({ ...newEvent, event_date: e.target.value })}
+            />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" placeholder="Event details and notes" />
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="event-time" className="text-right">
+              Time
+            </Label>
+            <Input 
+              id="event-time" 
+              type="time" 
+              className="col-span-3"
+              value={newEvent.event_time}
+              onChange={(e) => setNewEvent({ ...newEvent, event_time: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="venue" className="text-right">
+              Venue
+            </Label>
+            <Input 
+              id="venue" 
+              placeholder="Venue location" 
+              className="col-span-3"
+              value={newEvent.venue}
+              onChange={(e) => setNewEvent({ ...newEvent, venue: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="attendees" className="text-right">
+              Guests
+            </Label>
+            <Input 
+              id="attendees" 
+              type="number" 
+              placeholder="Expected attendees" 
+              className="col-span-3"
+              value={newEvent.expected_attendees}
+              onChange={(e) => setNewEvent({ ...newEvent, expected_attendees: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="description" className="text-right">
+              Details
+            </Label>
+            <Textarea 
+              id="description" 
+              placeholder="Event description" 
+              className="col-span-3"
+              value={newEvent.description}
+              onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+            />
           </div>
         </div>
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline">Cancel</Button>
-          <Button className="hero-button">Create Event</Button>
-        </div>
+        <DialogFooter>
+          <Button 
+            type="submit" 
+            className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+            onClick={handleCreateEvent}
+            disabled={isCreating || !newEvent.title || !newEvent.event_date}
+          >
+            {isCreating ? 'Creating...' : 'Create Event'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 
   return (
-    <div className="min-h-screen p-6 space-y-8" style={{ background: 'var(--gradient-soft)' }}>
+    <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-serif font-bold gradient-text mb-2">
-            Event Scheduler
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Plan and organize your wedding celebrations
-          </p>
+          <h1 className="text-3xl font-bold">Event & Ritual Scheduler</h1>
+          <p className="text-muted-foreground">Plan your perfect Hindu wedding timeline with traditional rituals</p>
         </div>
-        <div className="flex items-center space-x-4 mt-4 lg:mt-0">
-          <AddEventDialog />
-        </div>
+        <AddEventDialog />
       </div>
 
-      {/* View Toggle */}
-      <Card className="wedding-card">
-        <CardContent className="pt-6">
-          <Tabs value={view} onValueChange={(v) => setView(v as typeof view)} className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-3">
-              <TabsTrigger value="month">Month</TabsTrigger>
-              <TabsTrigger value="week">Week</TabsTrigger>
-              <TabsTrigger value="day">Day</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      {/* Events Timeline */}
+      {/* Navigation Tabs */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-serif font-semibold">Wedding Timeline</h2>
-          <Button variant="outline">
-            <Calendar className="h-4 w-4 mr-2" />
-            Export Calendar
-          </Button>
-        </div>
+        <Tabs value={view} onValueChange={setView} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
+            <TabsTrigger value="templates">
+              <Sparkles className="h-4 w-4 mr-1" />
+              Templates
+            </TabsTrigger>
+            <TabsTrigger value="month">Month</TabsTrigger>
+            <TabsTrigger value="week">Week</TabsTrigger>
+          </TabsList>
 
-        {/* Events Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {events.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
-        </div>
-      </div>
+          <TabsContent value="timeline" className="space-y-6">
+            {/* Wedding Timeline */}
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold">Wedding Timeline</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {events.length > 0 ? (
+                  events.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No events scheduled</h3>
+                    <p className="text-muted-foreground mb-4">Start building your wedding timeline by adding your first event or applying a template.</p>
+                    <div className="space-x-2">
+                      <Button onClick={() => setShowAddDialog(true)}>Add First Event</Button>
+                      <Button variant="outline" onClick={() => setView("templates")}>Browse Templates</Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
-      {/* Upcoming Events Summary */}
-      <Card className="wedding-card">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Star className="h-5 w-5" />
-            <span>This Week's Events</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {events.slice(0, 3).map((event) => (
-              <div key={event.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
-                <div className="flex items-center space-x-3">
-                  <event.icon className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="font-medium">{event.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(event.date).toLocaleDateString()} • {event.time}
-                    </p>
+            {/* Upcoming Events Summary */}
+            {events.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Upcoming Events Summary</h3>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div>
+                      <p className="text-2xl font-bold text-primary">{events.length}</p>
+                      <p className="text-sm text-muted-foreground">Total Events</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-green-600">
+                        {events.filter(e => e.status === 'confirmed').length}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Confirmed</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-yellow-600">
+                        {events.filter(e => e.status === 'planning').length}
+                      </p>
+                      <p className="text-sm text-muted-foreground">In Planning</p>
+                    </div>
                   </div>
                 </div>
-                <Badge variant="outline" className="text-xs">
-                  {new Date(event.date) > new Date() ? 
-                    `${Math.ceil((new Date(event.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} days` 
-                    : 'Today'
-                  }
-                </Badge>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="templates">
+            <RitualTemplates />
+          </TabsContent>
+
+          <TabsContent value="month" className="space-y-6">
+            <div className="text-center text-muted-foreground">
+              <Calendar className="h-12 w-12 mx-auto mb-2" />
+              <p>Month view coming soon</p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="week" className="space-y-6">
+            <div className="text-center text-muted-foreground">
+              <Calendar className="h-12 w-12 mx-auto mb-2" />
+              <p>Week view coming soon</p>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

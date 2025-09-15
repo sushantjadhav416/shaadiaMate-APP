@@ -1,1 +1,10 @@
 project_id = "yfviydzxgalogzzbvzzy"
+
+[functions.event-management]
+verify_jwt = true
+
+[functions.ritual-templates]
+verify_jwt = false
+
+[functions.reminder-system]
+verify_jwt = false

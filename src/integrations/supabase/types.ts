@@ -59,12 +59,114 @@ export type Database = {
         }
         Relationships: []
       }
+      event_reminders: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          message_template: string | null
+          recipient_info: Json
+          reminder_time: string
+          reminder_type: string
+          sent_at: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          message_template?: string | null
+          recipient_info: Json
+          reminder_time: string
+          reminder_type: string
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          message_template?: string | null
+          recipient_info?: Json
+          reminder_time?: string
+          reminder_type?: string
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_reminders_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_templates: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          is_active: boolean | null
+          name: string
+          requirements: string[] | null
+          ritual_category: string | null
+          sequence_order: number | null
+          typical_duration: number | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          requirements?: string[] | null
+          ritual_category?: string | null
+          sequence_order?: number | null
+          typical_duration?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          requirements?: string[] | null
+          ritual_category?: string | null
+          sequence_order?: number | null
+          typical_duration?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
+          assigned_coordinators: Json | null
           created_at: string
           description: string | null
           event_date: string | null
+          event_time: string | null
+          event_type: string | null
+          expected_attendees: number | null
           id: string
+          is_template: boolean | null
+          reminder_settings: Json | null
+          ritual_category: string | null
           status: string | null
           title: string
           updated_at: string
@@ -72,10 +174,17 @@ export type Database = {
           venue: string | null
         }
         Insert: {
+          assigned_coordinators?: Json | null
           created_at?: string
           description?: string | null
           event_date?: string | null
+          event_time?: string | null
+          event_type?: string | null
+          expected_attendees?: number | null
           id?: string
+          is_template?: boolean | null
+          reminder_settings?: Json | null
+          ritual_category?: string | null
           status?: string | null
           title: string
           updated_at?: string
@@ -83,10 +192,17 @@ export type Database = {
           venue?: string | null
         }
         Update: {
+          assigned_coordinators?: Json | null
           created_at?: string
           description?: string | null
           event_date?: string | null
+          event_time?: string | null
+          event_type?: string | null
+          expected_attendees?: number | null
           id?: string
+          is_template?: boolean | null
+          reminder_settings?: Json | null
+          ritual_category?: string | null
           status?: string | null
           title?: string
           updated_at?: string
