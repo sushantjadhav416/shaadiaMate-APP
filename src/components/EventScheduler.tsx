@@ -148,139 +148,143 @@ const EventScheduler = () => {
             Create a new event for your wedding celebration timeline.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="event-name" className="text-right">
-              Event
-            </Label>
-            <Input 
-              id="event-name" 
-              placeholder="Event name" 
-              className="col-span-3"
-              value={newEvent.title}
-              onChange={(e) => {
-                console.log('Title changing to:', e.target.value);
-                setNewEvent({ ...newEvent, title: e.target.value });
-              }}
-            />
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          handleCreateEvent();
+        }}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="event-name" className="text-right">
+                Event
+              </Label>
+              <Input 
+                id="event-name" 
+                placeholder="Event name" 
+                className="col-span-3"
+                value={newEvent.title}
+                onChange={(e) => {
+                  console.log('Title changing to:', e.target.value);
+                  setNewEvent({ ...newEvent, title: e.target.value });
+                }}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="event-type" className="text-right">
+                Type
+              </Label>
+              <Select 
+                value={newEvent.event_type} 
+                onValueChange={(value) => setNewEvent({ ...newEvent, event_type: value })}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select event type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pre-wedding">Pre-Wedding</SelectItem>
+                  <SelectItem value="wedding">Wedding</SelectItem>
+                  <SelectItem value="post-wedding">Post-Wedding</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="ritual-category" className="text-right">
+                Ritual
+              </Label>
+              <Select 
+                value={newEvent.ritual_category} 
+                onValueChange={(value) => setNewEvent({ ...newEvent, ritual_category: value })}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select ritual" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="engagement">Engagement</SelectItem>
+                  <SelectItem value="haldi">Haldi</SelectItem>
+                  <SelectItem value="mehendi">Mehendi</SelectItem>
+                  <SelectItem value="sangeet">Sangeet</SelectItem>
+                  <SelectItem value="tilaka">Tilaka</SelectItem>
+                  <SelectItem value="baraat">Baraat</SelectItem>
+                  <SelectItem value="jaimala">Jaimala</SelectItem>
+                  <SelectItem value="saat_phere">Saat Phere</SelectItem>
+                  <SelectItem value="sindoor">Sindoor</SelectItem>
+                  <SelectItem value="bidaai">Bidaai</SelectItem>
+                  <SelectItem value="griha_pravesh">Griha Pravesh</SelectItem>
+                  <SelectItem value="reception">Reception</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="event-date" className="text-right">
+                Date
+              </Label>
+              <Input 
+                id="event-date" 
+                type="date" 
+                className="col-span-3"
+                value={newEvent.event_date}
+                onChange={(e) => setNewEvent({ ...newEvent, event_date: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="event-time" className="text-right">
+                Time
+              </Label>
+              <Input 
+                id="event-time" 
+                type="time" 
+                className="col-span-3"
+                value={newEvent.event_time}
+                onChange={(e) => setNewEvent({ ...newEvent, event_time: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="venue" className="text-right">
+                Venue
+              </Label>
+              <Input 
+                id="venue" 
+                placeholder="Venue location" 
+                className="col-span-3"
+                value={newEvent.venue}
+                onChange={(e) => setNewEvent({ ...newEvent, venue: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="attendees" className="text-right">
+                Guests
+              </Label>
+              <Input 
+                id="attendees" 
+                type="number" 
+                placeholder="Expected attendees" 
+                className="col-span-3"
+                value={newEvent.expected_attendees}
+                onChange={(e) => setNewEvent({ ...newEvent, expected_attendees: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Details
+              </Label>
+              <Textarea 
+                id="description" 
+                placeholder="Event description" 
+                className="col-span-3"
+                value={newEvent.description}
+                onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+              />
+            </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="event-type" className="text-right">
-              Type
-            </Label>
-            <Select 
-              value={newEvent.event_type} 
-              onValueChange={(value) => setNewEvent({ ...newEvent, event_type: value })}
+          <DialogFooter>
+            <Button 
+              type="submit" 
+              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+              disabled={isCreating || !newEvent.title || !newEvent.event_date}
             >
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select event type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pre-wedding">Pre-Wedding</SelectItem>
-                <SelectItem value="wedding">Wedding</SelectItem>
-                <SelectItem value="post-wedding">Post-Wedding</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="ritual-category" className="text-right">
-              Ritual
-            </Label>
-            <Select 
-              value={newEvent.ritual_category} 
-              onValueChange={(value) => setNewEvent({ ...newEvent, ritual_category: value })}
-            >
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select ritual" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="engagement">Engagement</SelectItem>
-                <SelectItem value="haldi">Haldi</SelectItem>
-                <SelectItem value="mehendi">Mehendi</SelectItem>
-                <SelectItem value="sangeet">Sangeet</SelectItem>
-                <SelectItem value="tilaka">Tilaka</SelectItem>
-                <SelectItem value="baraat">Baraat</SelectItem>
-                <SelectItem value="jaimala">Jaimala</SelectItem>
-                <SelectItem value="saat_phere">Saat Phere</SelectItem>
-                <SelectItem value="sindoor">Sindoor</SelectItem>
-                <SelectItem value="bidaai">Bidaai</SelectItem>
-                <SelectItem value="griha_pravesh">Griha Pravesh</SelectItem>
-                <SelectItem value="reception">Reception</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="event-date" className="text-right">
-              Date
-            </Label>
-            <Input 
-              id="event-date" 
-              type="date" 
-              className="col-span-3"
-              value={newEvent.event_date}
-              onChange={(e) => setNewEvent({ ...newEvent, event_date: e.target.value })}
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="event-time" className="text-right">
-              Time
-            </Label>
-            <Input 
-              id="event-time" 
-              type="time" 
-              className="col-span-3"
-              value={newEvent.event_time}
-              onChange={(e) => setNewEvent({ ...newEvent, event_time: e.target.value })}
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="venue" className="text-right">
-              Venue
-            </Label>
-            <Input 
-              id="venue" 
-              placeholder="Venue location" 
-              className="col-span-3"
-              value={newEvent.venue}
-              onChange={(e) => setNewEvent({ ...newEvent, venue: e.target.value })}
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="attendees" className="text-right">
-              Guests
-            </Label>
-            <Input 
-              id="attendees" 
-              type="number" 
-              placeholder="Expected attendees" 
-              className="col-span-3"
-              value={newEvent.expected_attendees}
-              onChange={(e) => setNewEvent({ ...newEvent, expected_attendees: e.target.value })}
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">
-              Details
-            </Label>
-            <Textarea 
-              id="description" 
-              placeholder="Event description" 
-              className="col-span-3"
-              value={newEvent.description}
-              onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button 
-            type="submit" 
-            className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
-            onClick={handleCreateEvent}
-            disabled={isCreating || !newEvent.title || !newEvent.event_date}
-          >
-            {isCreating ? 'Creating...' : 'Create Event'}
-          </Button>
-        </DialogFooter>
+              {isCreating ? 'Creating...' : 'Create Event'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
