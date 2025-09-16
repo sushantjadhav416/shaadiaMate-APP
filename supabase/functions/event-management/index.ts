@@ -102,7 +102,7 @@ async function getUserEvents(supabaseClient: any) {
     .from('events')
     .select(`
       *,
-      tasks!tasks_event_id_fkey (
+      tasks (
         id,
         title,
         status,

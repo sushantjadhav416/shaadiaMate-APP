@@ -28,9 +28,17 @@ const EventScheduler = () => {
     expected_attendees: '',
   });
 
-  const { events, createEvent, isCreating } = useEvents();
+  const { events, createEvent, isCreating, isLoading, error } = useEvents();
+
+  console.log('EventScheduler - Events:', events);
+  console.log('EventScheduler - IsLoading:', isLoading);
+  console.log('EventScheduler - Error:', error);
 
   const handleCreateEvent = () => {
+    if (!newEvent.title || !newEvent.event_date) {
+      return;
+    }
+    
     createEvent({
       ...newEvent,
       expected_attendees: newEvent.expected_attendees ? parseInt(newEvent.expected_attendees) : undefined,
@@ -150,7 +158,10 @@ const EventScheduler = () => {
               placeholder="Event name" 
               className="col-span-3"
               value={newEvent.title}
-              onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+              onChange={(e) => {
+                console.log('Title changing to:', e.target.value);
+                setNewEvent({ ...newEvent, title: e.target.value });
+              }}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -273,6 +284,32 @@ const EventScheduler = () => {
       </DialogContent>
     </Dialog>
   );
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading events...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading events</h3>
+            <p className="text-muted-foreground">{error.message}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">

@@ -40,22 +40,32 @@ export const useEvents = () => {
   const eventsQuery = useQuery({
     queryKey: ['events'],
     queryFn: async () => {
+      console.log('Fetching events...');
       const { data, error } = await supabase.functions.invoke('event-management', {
         body: { action: 'get-user-events' }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Events fetch error:', error);
+        throw error;
+      }
+      console.log('Events fetched successfully:', data);
       return data.events as Event[];
     },
   });
 
   const createEventMutation = useMutation({
     mutationFn: async (eventData: Partial<Event>) => {
+      console.log('Creating event with data:', eventData);
       const { data, error } = await supabase.functions.invoke('event-management', {
         body: { action: 'create', eventData }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Event creation error:', error);
+        throw error;
+      }
+      console.log('Event created successfully:', data);
       return data.event;
     },
     onSuccess: () => {

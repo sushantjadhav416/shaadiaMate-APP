@@ -309,6 +309,7 @@ export type Database = {
           created_at: string
           description: string | null
           due_date: string | null
+          event_id: string | null
           id: string
           priority: string | null
           status: string | null
@@ -323,6 +324,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          event_id?: string | null
           id?: string
           priority?: string | null
           status?: string | null
@@ -337,6 +339,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          event_id?: string | null
           id?: string
           priority?: string | null
           status?: string | null
@@ -344,7 +347,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vendors: {
         Row: {
