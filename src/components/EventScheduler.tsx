@@ -166,6 +166,11 @@ const EventScheduler = () => {
                   console.log('Title changing to:', e.target.value);
                   setNewEvent({ ...newEvent, title: e.target.value });
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -223,6 +228,11 @@ const EventScheduler = () => {
                 className="col-span-3"
                 value={newEvent.event_date}
                 onChange={(e) => setNewEvent({ ...newEvent, event_date: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -235,6 +245,11 @@ const EventScheduler = () => {
                 className="col-span-3"
                 value={newEvent.event_time}
                 onChange={(e) => setNewEvent({ ...newEvent, event_time: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -247,6 +262,11 @@ const EventScheduler = () => {
                 className="col-span-3"
                 value={newEvent.venue}
                 onChange={(e) => setNewEvent({ ...newEvent, venue: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -260,6 +280,11 @@ const EventScheduler = () => {
                 className="col-span-3"
                 value={newEvent.expected_attendees}
                 onChange={(e) => setNewEvent({ ...newEvent, expected_attendees: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -272,6 +297,11 @@ const EventScheduler = () => {
                 className="col-span-3"
                 value={newEvent.description}
                 onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
               />
             </div>
           </div>
