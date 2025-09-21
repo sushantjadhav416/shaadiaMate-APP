@@ -105,6 +105,13 @@ const EventScheduler = () => {
     setShowViewDialog(true);
   };
 
+  const handleStatusUpdate = (eventId: string, newStatus: string) => {
+    updateEvent({
+      eventId,
+      eventData: { status: newStatus }
+    });
+  };
+
   const EventCard = ({ event }: { event: any }) => {
     const getRitualIcon = (category: string) => {
       const icons: { [key: string]: string } = {
@@ -128,6 +135,8 @@ const EventScheduler = () => {
       const colors: { [key: string]: string } = {
         confirmed: 'bg-green-100 border-green-300 text-green-800',
         planning: 'bg-yellow-100 border-yellow-300 text-yellow-800',
+        ongoing: 'bg-blue-100 border-blue-300 text-blue-800',
+        ended: 'bg-gray-100 border-gray-300 text-gray-800',
         draft: 'bg-gray-100 border-gray-300 text-gray-800',
       };
       return colors[status] || 'bg-gray-100 border-gray-300 text-gray-800';
@@ -174,6 +183,42 @@ const EventScheduler = () => {
                 <Eye className="h-3 w-3 mr-1" />
                 View Details
               </Button>
+            </div>
+            {/* Status Update Buttons */}
+            <div className="flex gap-1 mt-2">
+              {event.status === 'planning' && (
+                <Button 
+                  size="sm" 
+                  variant="default" 
+                  className="flex-1 text-xs" 
+                  onClick={() => handleStatusUpdate(event.id, 'confirmed')}
+                  disabled={isUpdating}
+                >
+                  Confirm
+                </Button>
+              )}
+              {event.status === 'confirmed' && (
+                <Button 
+                  size="sm" 
+                  variant="default" 
+                  className="flex-1 text-xs" 
+                  onClick={() => handleStatusUpdate(event.id, 'ongoing')}
+                  disabled={isUpdating}
+                >
+                  Start Event
+                </Button>
+              )}
+              {event.status === 'ongoing' && (
+                <Button 
+                  size="sm" 
+                  variant="default" 
+                  className="flex-1 text-xs" 
+                  onClick={() => handleStatusUpdate(event.id, 'ended')}
+                  disabled={isUpdating}
+                >
+                  End Event
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
@@ -395,9 +440,51 @@ const EventScheduler = () => {
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-              <Badge variant={selectedEvent?.status === "confirmed" ? "default" : "secondary"} className="w-fit">
-                {selectedEvent?.status || 'Draft'}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={selectedEvent?.status === "confirmed" ? "default" : "secondary"} className="w-fit">
+                  {selectedEvent?.status || 'Draft'}
+                </Badge>
+                {/* Status change buttons in view dialog */}
+                {selectedEvent?.status === 'planning' && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      handleStatusUpdate(selectedEvent.id, 'confirmed');
+                      setShowViewDialog(false);
+                    }}
+                    disabled={isUpdating}
+                  >
+                    Confirm
+                  </Button>
+                )}
+                {selectedEvent?.status === 'confirmed' && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      handleStatusUpdate(selectedEvent.id, 'ongoing');
+                      setShowViewDialog(false);
+                    }}
+                    disabled={isUpdating}
+                  >
+                    Start
+                  </Button>
+                )}
+                {selectedEvent?.status === 'ongoing' && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      handleStatusUpdate(selectedEvent.id, 'ended');
+                      setShowViewDialog(false);
+                    }}
+                    disabled={isUpdating}
+                  >
+                    End
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Guests</Label>
