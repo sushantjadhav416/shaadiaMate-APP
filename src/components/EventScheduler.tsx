@@ -17,6 +17,9 @@ const EventScheduler = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState("timeline");
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
@@ -27,8 +30,18 @@ const EventScheduler = () => {
     ritual_category: '',
     expected_attendees: '',
   });
+  const [editEvent, setEditEvent] = useState({
+    title: '',
+    description: '',
+    event_date: '',
+    event_time: '',
+    venue: '',
+    event_type: 'wedding',
+    ritual_category: '',
+    expected_attendees: '',
+  });
 
-  const { events, createEvent, isCreating, isLoading, error } = useEvents();
+  const { events, createEvent, updateEvent, isCreating, isUpdating, isLoading, error } = useEvents();
 
   console.log('EventScheduler - Events:', events);
   console.log('EventScheduler - IsLoading:', isLoading);
@@ -54,6 +67,42 @@ const EventScheduler = () => {
       expected_attendees: '',
     });
     setShowAddDialog(false);
+  };
+
+  const handleEditEvent = () => {
+    if (!editEvent.title || !editEvent.event_date || !selectedEvent) {
+      return;
+    }
+    
+    updateEvent({
+      eventId: selectedEvent.id,
+      eventData: {
+        ...editEvent,
+        expected_attendees: editEvent.expected_attendees ? parseInt(editEvent.expected_attendees) : undefined,
+      }
+    });
+    setShowEditDialog(false);
+    setSelectedEvent(null);
+  };
+
+  const openEditDialog = (event: any) => {
+    setSelectedEvent(event);
+    setEditEvent({
+      title: event.title || '',
+      description: event.description || '',
+      event_date: event.event_date ? new Date(event.event_date).toISOString().split('T')[0] : '',
+      event_time: event.event_time || '',
+      venue: event.venue || '',
+      event_type: event.event_type || 'wedding',
+      ritual_category: event.ritual_category || '',
+      expected_attendees: event.expected_attendees?.toString() || '',
+    });
+    setShowEditDialog(true);
+  };
+
+  const openViewDialog = (event: any) => {
+    setSelectedEvent(event);
+    setShowViewDialog(true);
   };
 
   const EventCard = ({ event }: { event: any }) => {
@@ -117,11 +166,11 @@ const EventScheduler = () => {
             </div>
             <p className="text-sm text-muted-foreground">{event.description}</p>
             <div className="flex gap-2 mt-3">
-              <Button size="sm" variant="outline" className="flex-1">
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => openEditDialog(event)}>
                 <Edit className="h-3 w-3 mr-1" />
                 Edit
               </Button>
-              <Button size="sm" variant="outline" className="flex-1">
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => openViewDialog(event)}>
                 <Eye className="h-3 w-3 mr-1" />
                 View Details
               </Button>
@@ -131,6 +180,285 @@ const EventScheduler = () => {
       </Card>
     );
   };
+
+  // Dialog for editing events
+  const EditEventDialog = () => (
+    <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Event</DialogTitle>
+          <DialogDescription>
+            Update the details for this wedding event.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-event-name" className="text-right">
+              Event
+            </Label>
+            <Input 
+              id="edit-event-name" 
+              placeholder="Event name" 
+              className="col-span-3"
+              value={editEvent.title}
+              onChange={(e) => setEditEvent({ ...editEvent, title: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-event-type" className="text-right">
+              Type
+            </Label>
+            <Select 
+              value={editEvent.event_type} 
+              onValueChange={(value) => setEditEvent({ ...editEvent, event_type: value })}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select event type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pre-wedding">Pre-Wedding</SelectItem>
+                <SelectItem value="wedding">Wedding</SelectItem>
+                <SelectItem value="post-wedding">Post-Wedding</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-ritual-category" className="text-right">
+              Ritual
+            </Label>
+            <Select 
+              value={editEvent.ritual_category} 
+              onValueChange={(value) => setEditEvent({ ...editEvent, ritual_category: value })}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select ritual" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="engagement">Engagement</SelectItem>
+                <SelectItem value="haldi">Haldi</SelectItem>
+                <SelectItem value="mehendi">Mehendi</SelectItem>
+                <SelectItem value="sangeet">Sangeet</SelectItem>
+                <SelectItem value="tilaka">Tilaka</SelectItem>
+                <SelectItem value="baraat">Baraat</SelectItem>
+                <SelectItem value="jaimala">Jaimala</SelectItem>
+                <SelectItem value="saat_phere">Saat Phere</SelectItem>
+                <SelectItem value="sindoor">Sindoor</SelectItem>
+                <SelectItem value="bidaai">Bidaai</SelectItem>
+                <SelectItem value="griha_pravesh">Griha Pravesh</SelectItem>
+                <SelectItem value="reception">Reception</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-event-date" className="text-right">
+              Date
+            </Label>
+            <Input 
+              id="edit-event-date" 
+              type="date" 
+              className="col-span-3"
+              value={editEvent.event_date}
+              onChange={(e) => setEditEvent({ ...editEvent, event_date: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-event-time" className="text-right">
+              Time
+            </Label>
+            <Input 
+              id="edit-event-time" 
+              type="time" 
+              className="col-span-3"
+              value={editEvent.event_time}
+              onChange={(e) => setEditEvent({ ...editEvent, event_time: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-venue" className="text-right">
+              Venue
+            </Label>
+            <Input 
+              id="edit-venue" 
+              placeholder="Venue location" 
+              className="col-span-3"
+              value={editEvent.venue}
+              onChange={(e) => setEditEvent({ ...editEvent, venue: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-attendees" className="text-right">
+              Guests
+            </Label>
+            <Input 
+              id="edit-attendees" 
+              type="number" 
+              placeholder="Expected attendees" 
+              className="col-span-3"
+              value={editEvent.expected_attendees}
+              onChange={(e) => setEditEvent({ ...editEvent, expected_attendees: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-description" className="text-right">
+              Details
+            </Label>
+            <Textarea 
+              id="edit-description" 
+              placeholder="Event description" 
+              className="col-span-3"
+              value={editEvent.description}
+              onChange={(e) => setEditEvent({ ...editEvent, description: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button 
+            onClick={handleEditEvent}
+            className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+            disabled={isUpdating || !editEvent.title || !editEvent.event_date}
+          >
+            {isUpdating ? 'Updating...' : 'Update Event'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Dialog for viewing event details
+  const ViewEventDialog = () => (
+    <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <span className="text-lg">
+              {selectedEvent?.ritual_category ? 
+                (() => {
+                  const icons: { [key: string]: string } = {
+                    engagement: '💍',
+                    haldi: '💛',
+                    mehendi: '🌿',
+                    sangeet: '🎵',
+                    tilaka: '🕉️',
+                    baraat: '🐎',
+                    jaimala: '🌺',
+                    saat_phere: '🔥',
+                    sindoor: '❤️',
+                    bidaai: '👋',
+                    griha_pravesh: '🏠',
+                    reception: '🎉',
+                  };
+                  return icons[selectedEvent.ritual_category] || '✨';
+                })() : '✨'
+              }
+            </span>
+            {selectedEvent?.title}
+          </DialogTitle>
+          <DialogDescription>
+            Event details and information
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">Type</Label>
+              <p className="text-sm capitalize">{selectedEvent?.event_type || 'Not specified'}</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+              <Badge variant={selectedEvent?.status === "confirmed" ? "default" : "secondary"} className="w-fit">
+                {selectedEvent?.status || 'Draft'}
+              </Badge>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">Guests</Label>
+              <p className="text-sm">{selectedEvent?.expected_attendees || 0} attendees</p>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-muted-foreground">Date & Time</Label>
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar className="h-4 w-4" />
+              <span>
+                {selectedEvent?.event_date ? 
+                  format(new Date(selectedEvent.event_date), 'PPP') : 
+                  'Date not set'
+                }
+              </span>
+              {selectedEvent?.event_time && (
+                <>
+                  <Clock className="h-4 w-4 ml-2" />
+                  <span>{selectedEvent.event_time}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-muted-foreground">Venue</Label>
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="h-4 w-4" />
+              <span>{selectedEvent?.venue || 'Venue not specified'}</span>
+            </div>
+          </div>
+
+          {selectedEvent?.description && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">Description</Label>
+              <p className="text-sm">{selectedEvent.description}</p>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-muted-foreground">Ritual Category</Label>
+            <p className="text-sm capitalize">{selectedEvent?.ritual_category || 'Not specified'}</p>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setShowViewDialog(false);
+              openEditDialog(selectedEvent);
+            }}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Event
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
   // Dialog for adding new events
   const AddEventDialog = () => (
@@ -354,6 +682,8 @@ const EventScheduler = () => {
           <p className="text-muted-foreground">Plan your perfect Hindu wedding timeline with traditional rituals</p>
         </div>
         <AddEventDialog />
+        <EditEventDialog />
+        <ViewEventDialog />
       </div>
 
       {/* Navigation Tabs */}
