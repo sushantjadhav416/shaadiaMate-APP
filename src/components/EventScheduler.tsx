@@ -13,6 +13,7 @@ import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval } from "date
 import { useEvents } from "@/hooks/useEvents";
 import { RitualTemplates } from "./RitualTemplates";
 import { MonthView } from "./MonthView";
+import { WeekView } from "./WeekView";
 
 const EventScheduler = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -847,10 +848,7 @@ const EventScheduler = () => {
           </TabsContent>
 
           <TabsContent value="week" className="space-y-6">
-            <div className="text-center text-muted-foreground">
-              <Calendar className="h-12 w-12 mx-auto mb-2" />
-              <p>Week view coming soon</p>
-            </div>
+            <WeekView events={events} onEventClick={openViewDialog} />
           </TabsContent>
         </Tabs>
       </div>
