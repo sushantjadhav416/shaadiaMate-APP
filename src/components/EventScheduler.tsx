@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
 import { useEvents } from "@/hooks/useEvents";
 import { RitualTemplates } from "./RitualTemplates";
+import { MonthView } from "./MonthView";
 
 const EventScheduler = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -842,10 +843,7 @@ const EventScheduler = () => {
           </TabsContent>
 
           <TabsContent value="month" className="space-y-6">
-            <div className="text-center text-muted-foreground">
-              <Calendar className="h-12 w-12 mx-auto mb-2" />
-              <p>Month view coming soon</p>
-            </div>
+            <MonthView events={events} onEventClick={openViewDialog} />
           </TabsContent>
 
           <TabsContent value="week" className="space-y-6">
