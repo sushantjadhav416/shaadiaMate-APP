@@ -15,7 +15,7 @@ import { RitualTemplates } from "./RitualTemplates";
 import { MonthView } from "./MonthView";
 import { WeekView } from "./WeekView";
 import { EventTimer } from "./EventTimer";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const EventScheduler = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -110,33 +110,10 @@ const EventScheduler = () => {
     setShowViewDialog(true);
   };
 
-  const handleStatusUpdate = (eventId: string, newStatus: string, additionalData?: any) => {
+  const handleStatusUpdate = (eventId: string, newStatus: string, extraData?: any) => {
     updateEvent({
       eventId,
-      eventData: { status: newStatus, ...additionalData }
-    });
-  };
-
-  const handleStartEvent = (event: any) => {
-    handleStatusUpdate(event.id, 'ongoing', { started_at: new Date().toISOString() });
-  };
-
-  const handleEndEvent = (event: any) => {
-    const startTime = new Date(event.started_at).getTime();
-    const endTime = new Date().getTime();
-    const duration = Math.floor((endTime - startTime) / 60000); // minutes
-    
-    handleStatusUpdate(event.id, 'ended', {
-      ended_at: new Date().toISOString(),
-      actual_duration: duration
-    });
-  };
-
-  const handleRestartEvent = (event: any) => {
-    handleStatusUpdate(event.id, 'confirmed', {
-      started_at: null,
-      ended_at: null,
-      actual_duration: null
+      eventData: { status: newStatus, ...extraData }
     });
   };
 
@@ -146,6 +123,11 @@ const EventScheduler = () => {
       setShowDeleteDialog(false);
       setSelectedEvent(null);
     }
+  };
+
+  const openDeleteDialog = (event: any) => {
+    setSelectedEvent(event);
+    setShowDeleteDialog(true);
   };
 
   const EventCard = ({ event }: { event: any }) => {
@@ -231,18 +213,12 @@ const EventScheduler = () => {
                 <Trash2 className="h-3 w-3" />
               </Button>
             </div>
-            {/* Timer and Status Controls */}
-            {(event.status === 'confirmed' || event.status === 'ongoing' || event.status === 'ended') && (
-              <div className="mt-3">
-                <EventTimer
-                  event={event}
-                  onStart={() => handleStartEvent(event)}
-                  onEnd={() => handleEndEvent(event)}
-                  onRestart={() => handleRestartEvent(event)}
-                  isUpdating={isUpdating}
-                />
-              </div>
-            )}
+            
+            <EventTimer 
+              event={event} 
+              onStatusUpdate={handleStatusUpdate}
+              isUpdating={isUpdating}
+            />
             {event.status === 'planning' && (
               <Button 
                 size="sm" 
@@ -887,6 +863,8 @@ const EventScheduler = () => {
 
       <EditEventDialog />
       <ViewEventDialog />
+      
+      {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

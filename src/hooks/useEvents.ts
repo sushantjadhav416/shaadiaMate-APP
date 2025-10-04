@@ -18,11 +18,10 @@ export interface Event {
   user_id: string;
   created_at: string;
   updated_at: string;
+  tasks?: any[];
   started_at?: string;
   ended_at?: string;
   actual_duration?: number;
-  pause_history?: any[];
-  tasks?: any[];
 }
 
 export interface EventTemplate {
@@ -125,7 +124,7 @@ export const useEvents = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       toast({
-        title: "Event deleted successfully",
+        title: "Event deleted",
         description: "The event has been removed.",
       });
     },

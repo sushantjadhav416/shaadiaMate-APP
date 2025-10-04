@@ -1,75 +1,112 @@
-import { useEffect, useState } from "react";
-import { Clock, Play, Square, RotateCcw } from "lucide-react";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
+import React, { useEffect, useState } from 'react';
+import { Clock, Play, Square, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface EventTimerProps {
   event: any;
-  onStart: () => void;
-  onEnd: () => void;
-  onRestart: () => void;
+  onStatusUpdate: (eventId: string, status: string, extraData?: any) => void;
   isUpdating: boolean;
 }
 
-export const EventTimer = ({ event, onStart, onEnd, onRestart, isUpdating }: EventTimerProps) => {
-  const [currentDuration, setCurrentDuration] = useState(0);
+export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, isUpdating }) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    if (event.status === 'ongoing' && event.started_at) {
-      const interval = setInterval(() => {
-        const startTime = new Date(event.started_at).getTime();
-        const now = new Date().getTime();
-        const duration = Math.floor((now - startTime) / 1000); // seconds
-        setCurrentDuration(duration);
-      }, 1000);
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
 
-      return () => clearInterval(interval);
-    } else if (event.status === 'ended' && event.actual_duration) {
-      setCurrentDuration(event.actual_duration * 60); // convert minutes to seconds
-    }
-  }, [event.status, event.started_at, event.actual_duration]);
+    return () => clearInterval(timer);
+  }, []);
 
-  const formatDuration = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const formatDuration = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
   };
 
+  const getElapsedTime = () => {
+    if (!event.started_at) return '0h 0m';
+    
+    const startTime = new Date(event.started_at).getTime();
+    const endTime = event.ended_at ? new Date(event.ended_at).getTime() : currentTime.getTime();
+    const elapsed = Math.floor((endTime - startTime) / 60000); // in minutes
+    
+    return formatDuration(elapsed);
+  };
+
+  const handleStart = () => {
+    onStatusUpdate(event.id, 'ongoing');
+  };
+
+  const handleEnd = () => {
+    onStatusUpdate(event.id, 'ended');
+  };
+
+  const handleRestart = () => {
+    onStatusUpdate(event.id, 'confirmed', { restart: true });
+  };
+
+  if (event.status === 'planning' || event.status === 'draft') {
+    return null;
+  }
+
   return (
-    <Card className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 border-2">
+    <div className="border-t pt-3 mt-3 space-y-2">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Clock className="h-5 w-5 text-primary" />
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Event Duration</p>
-            <p className="text-2xl font-bold text-primary">{formatDuration(currentDuration)}</p>
-          </div>
-        </div>
-        
-        <div className="flex gap-2">
-          {event.status === 'confirmed' && (
-            <Button onClick={onStart} disabled={isUpdating} size="sm" className="gap-2">
-              <Play className="h-4 w-4" />
-              Start
-            </Button>
-          )}
-          
-          {event.status === 'ongoing' && (
-            <Button onClick={onEnd} disabled={isUpdating} size="sm" variant="destructive" className="gap-2">
-              <Square className="h-4 w-4" />
-              End Event
-            </Button>
-          )}
-          
-          {event.status === 'ended' && (
-            <Button onClick={onRestart} disabled={isUpdating} size="sm" variant="outline" className="gap-2">
-              <RotateCcw className="h-4 w-4" />
-              Restart
-            </Button>
-          )}
+        <div className="flex items-center gap-2 text-sm">
+          <Clock className="h-4 w-4" />
+          <span className="font-medium">Duration:</span>
+          <Badge variant="outline">
+            {event.status === 'ended' && event.actual_duration 
+              ? formatDuration(event.actual_duration)
+              : getElapsedTime()
+            }
+          </Badge>
         </div>
       </div>
-    </Card>
+
+      <div className="flex gap-2">
+        {event.status === 'confirmed' && (
+          <Button 
+            size="sm" 
+            variant="default" 
+            className="flex-1"
+            onClick={handleStart}
+            disabled={isUpdating}
+          >
+            <Play className="h-3 w-3 mr-1" />
+            Start Event
+          </Button>
+        )}
+        
+        {event.status === 'ongoing' && (
+          <Button 
+            size="sm" 
+            variant="destructive" 
+            className="flex-1"
+            onClick={handleEnd}
+            disabled={isUpdating}
+          >
+            <Square className="h-3 w-3 mr-1" />
+            End Event
+          </Button>
+        )}
+        
+        {event.status === 'ended' && (
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="flex-1"
+            onClick={handleRestart}
+            disabled={isUpdating}
+          >
+            <RotateCcw className="h-3 w-3 mr-1" />
+            Restart Event
+          </Button>
+        )}
+      </div>
+    </div>
   );
 };
