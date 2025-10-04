@@ -156,17 +156,21 @@ export type Database = {
       }
       events: {
         Row: {
+          actual_duration: number | null
           assigned_coordinators: Json | null
           created_at: string
           description: string | null
+          ended_at: string | null
           event_date: string | null
           event_time: string | null
           event_type: string | null
           expected_attendees: number | null
           id: string
           is_template: boolean | null
+          pause_history: Json | null
           reminder_settings: Json | null
           ritual_category: string | null
+          started_at: string | null
           status: string | null
           title: string
           updated_at: string
@@ -174,17 +178,21 @@ export type Database = {
           venue: string | null
         }
         Insert: {
+          actual_duration?: number | null
           assigned_coordinators?: Json | null
           created_at?: string
           description?: string | null
+          ended_at?: string | null
           event_date?: string | null
           event_time?: string | null
           event_type?: string | null
           expected_attendees?: number | null
           id?: string
           is_template?: boolean | null
+          pause_history?: Json | null
           reminder_settings?: Json | null
           ritual_category?: string | null
+          started_at?: string | null
           status?: string | null
           title: string
           updated_at?: string
@@ -192,17 +200,21 @@ export type Database = {
           venue?: string | null
         }
         Update: {
+          actual_duration?: number | null
           assigned_coordinators?: Json | null
           created_at?: string
           description?: string | null
+          ended_at?: string | null
           event_date?: string | null
           event_time?: string | null
           event_type?: string | null
           expected_attendees?: number | null
           id?: string
           is_template?: boolean | null
+          pause_history?: Json | null
           reminder_settings?: Json | null
           ritual_category?: string | null
+          started_at?: string | null
           status?: string | null
           title?: string
           updated_at?: string

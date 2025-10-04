@@ -29,6 +29,8 @@ serve(async (req) => {
         return await createEvent(supabaseClient, eventData);
       case 'update':
         return await updateEvent(supabaseClient, eventId, eventData);
+      case 'delete':
+        return await deleteEvent(supabaseClient, eventId);
       case 'get-user-events':
         return await getUserEvents(supabaseClient);
       case 'duplicate-from-template':
@@ -78,6 +80,17 @@ async function updateEvent(supabaseClient: any, eventId: string, eventData: any)
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
+  // Handle timer logic when status changes
+  if (eventData.status === 'ongoing' && !eventData.started_at) {
+    eventData.started_at = new Date().toISOString();
+  } else if (eventData.status === 'ended' && eventData.started_at && !eventData.ended_at) {
+    eventData.ended_at = new Date().toISOString();
+    // Calculate duration in minutes
+    const startTime = new Date(eventData.started_at).getTime();
+    const endTime = new Date(eventData.ended_at).getTime();
+    eventData.actual_duration = Math.floor((endTime - startTime) / 60000);
+  }
+
   const { data, error } = await supabaseClient
     .from('events')
     .update(eventData)
@@ -90,6 +103,24 @@ async function updateEvent(supabaseClient: any, eventId: string, eventData: any)
 
   return new Response(
     JSON.stringify({ event: data }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+async function deleteEvent(supabaseClient: any, eventId: string) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  const { error } = await supabaseClient
+    .from('events')
+    .delete()
+    .eq('id', eventId)
+    .eq('user_id', user.id);
+
+  if (error) throw error;
+
+  return new Response(
+    JSON.stringify({ success: true }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }

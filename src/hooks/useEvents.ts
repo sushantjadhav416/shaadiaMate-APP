@@ -18,6 +18,10 @@ export interface Event {
   user_id: string;
   created_at: string;
   updated_at: string;
+  started_at?: string;
+  ended_at?: string;
+  actual_duration?: number;
+  pause_history?: any[];
   tasks?: any[];
 }
 
@@ -109,14 +113,41 @@ export const useEvents = () => {
     },
   });
 
+  const deleteEventMutation = useMutation({
+    mutationFn: async (eventId: string) => {
+      const { data, error } = await supabase.functions.invoke('event-management', {
+        body: { action: 'delete', eventId }
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast({
+        title: "Event deleted successfully",
+        description: "The event has been removed.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error deleting event",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     events: eventsQuery.data || [],
     isLoading: eventsQuery.isLoading,
     error: eventsQuery.error,
     createEvent: createEventMutation.mutate,
     updateEvent: updateEventMutation.mutate,
+    deleteEvent: deleteEventMutation.mutate,
     isCreating: createEventMutation.isPending,
     isUpdating: updateEventMutation.isPending,
+    isDeleting: deleteEventMutation.isPending,
   };
 };
 

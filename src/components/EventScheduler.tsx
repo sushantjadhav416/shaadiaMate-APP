@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, Users, MapPin, Clock, Plus, Edit, Eye, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Calendar, Users, MapPin, Clock, Plus, Edit, Eye, ChevronLeft, ChevronRight, Sparkles, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,8 @@ import { useEvents } from "@/hooks/useEvents";
 import { RitualTemplates } from "./RitualTemplates";
 import { MonthView } from "./MonthView";
 import { WeekView } from "./WeekView";
+import { EventTimer } from "./EventTimer";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 
 const EventScheduler = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -21,6 +23,7 @@ const EventScheduler = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -43,7 +46,7 @@ const EventScheduler = () => {
     expected_attendees: '',
   });
 
-  const { events, createEvent, updateEvent, isCreating, isUpdating, isLoading, error } = useEvents();
+  const { events, createEvent, updateEvent, deleteEvent, isCreating, isUpdating, isDeleting, isLoading, error } = useEvents();
 
   console.log('EventScheduler - Events:', events);
   console.log('EventScheduler - IsLoading:', isLoading);
@@ -107,11 +110,42 @@ const EventScheduler = () => {
     setShowViewDialog(true);
   };
 
-  const handleStatusUpdate = (eventId: string, newStatus: string) => {
+  const handleStatusUpdate = (eventId: string, newStatus: string, additionalData?: any) => {
     updateEvent({
       eventId,
-      eventData: { status: newStatus }
+      eventData: { status: newStatus, ...additionalData }
     });
+  };
+
+  const handleStartEvent = (event: any) => {
+    handleStatusUpdate(event.id, 'ongoing', { started_at: new Date().toISOString() });
+  };
+
+  const handleEndEvent = (event: any) => {
+    const startTime = new Date(event.started_at).getTime();
+    const endTime = new Date().getTime();
+    const duration = Math.floor((endTime - startTime) / 60000); // minutes
+    
+    handleStatusUpdate(event.id, 'ended', {
+      ended_at: new Date().toISOString(),
+      actual_duration: duration
+    });
+  };
+
+  const handleRestartEvent = (event: any) => {
+    handleStatusUpdate(event.id, 'confirmed', {
+      started_at: null,
+      ended_at: null,
+      actual_duration: null
+    });
+  };
+
+  const handleDeleteEvent = () => {
+    if (selectedEvent) {
+      deleteEvent(selectedEvent.id);
+      setShowDeleteDialog(false);
+      setSelectedEvent(null);
+    }
   };
 
   const EventCard = ({ event }: { event: any }) => {
@@ -185,43 +219,41 @@ const EventScheduler = () => {
                 <Eye className="h-3 w-3 mr-1" />
                 View Details
               </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="text-destructive hover:text-destructive" 
+                onClick={() => {
+                  setSelectedEvent(event);
+                  setShowDeleteDialog(true);
+                }}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
             </div>
-            {/* Status Update Buttons */}
-            <div className="flex gap-1 mt-2">
-              {event.status === 'planning' && (
-                <Button 
-                  size="sm" 
-                  variant="default" 
-                  className="flex-1 text-xs" 
-                  onClick={() => handleStatusUpdate(event.id, 'confirmed')}
-                  disabled={isUpdating}
-                >
-                  Confirm
-                </Button>
-              )}
-              {event.status === 'confirmed' && (
-                <Button 
-                  size="sm" 
-                  variant="default" 
-                  className="flex-1 text-xs" 
-                  onClick={() => handleStatusUpdate(event.id, 'ongoing')}
-                  disabled={isUpdating}
-                >
-                  Start Event
-                </Button>
-              )}
-              {event.status === 'ongoing' && (
-                <Button 
-                  size="sm" 
-                  variant="default" 
-                  className="flex-1 text-xs" 
-                  onClick={() => handleStatusUpdate(event.id, 'ended')}
-                  disabled={isUpdating}
-                >
-                  End Event
-                </Button>
-              )}
-            </div>
+            {/* Timer and Status Controls */}
+            {(event.status === 'confirmed' || event.status === 'ongoing' || event.status === 'ended') && (
+              <div className="mt-3">
+                <EventTimer
+                  event={event}
+                  onStart={() => handleStartEvent(event)}
+                  onEnd={() => handleEndEvent(event)}
+                  onRestart={() => handleRestartEvent(event)}
+                  isUpdating={isUpdating}
+                />
+              </div>
+            )}
+            {event.status === 'planning' && (
+              <Button 
+                size="sm" 
+                variant="default" 
+                className="w-full mt-2 text-xs" 
+                onClick={() => handleStatusUpdate(event.id, 'confirmed')}
+                disabled={isUpdating}
+              >
+                Confirm Event
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -852,6 +884,28 @@ const EventScheduler = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <EditEventDialog />
+      <ViewEventDialog />
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the event "{selectedEvent?.title}". This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteEvent}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Event'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
