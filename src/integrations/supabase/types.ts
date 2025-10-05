@@ -165,6 +165,7 @@ export type Database = {
           event_time: string | null
           event_type: string | null
           expected_attendees: number | null
+          expected_duration: number | null
           id: string
           is_template: boolean | null
           pause_history: Json | null
@@ -187,6 +188,7 @@ export type Database = {
           event_time?: string | null
           event_type?: string | null
           expected_attendees?: number | null
+          expected_duration?: number | null
           id?: string
           is_template?: boolean | null
           pause_history?: Json | null
@@ -209,6 +211,7 @@ export type Database = {
           event_time?: string | null
           event_type?: string | null
           expected_attendees?: number | null
+          expected_duration?: number | null
           id?: string
           is_template?: boolean | null
           pause_history?: Json | null

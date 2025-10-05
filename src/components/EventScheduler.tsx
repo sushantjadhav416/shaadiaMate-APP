@@ -34,6 +34,7 @@ const EventScheduler = () => {
     event_type: 'wedding',
     ritual_category: '',
     expected_attendees: '',
+    expected_duration: '',
   });
   const [editEvent, setEditEvent] = useState({
     title: '',
@@ -44,6 +45,7 @@ const EventScheduler = () => {
     event_type: 'wedding',
     ritual_category: '',
     expected_attendees: '',
+    expected_duration: '',
   });
 
   const { events, createEvent, updateEvent, deleteEvent, isCreating, isUpdating, isDeleting, isLoading, error } = useEvents();
@@ -60,6 +62,7 @@ const EventScheduler = () => {
     createEvent({
       ...newEvent,
       expected_attendees: newEvent.expected_attendees ? parseInt(newEvent.expected_attendees) : undefined,
+      expected_duration: newEvent.expected_duration ? parseInt(newEvent.expected_duration) : undefined,
     });
     setNewEvent({
       title: '',
@@ -70,6 +73,7 @@ const EventScheduler = () => {
       event_type: 'wedding',
       ritual_category: '',
       expected_attendees: '',
+      expected_duration: '',
     });
     setShowAddDialog(false);
   };
@@ -84,6 +88,7 @@ const EventScheduler = () => {
       eventData: {
         ...editEvent,
         expected_attendees: editEvent.expected_attendees ? parseInt(editEvent.expected_attendees) : undefined,
+        expected_duration: editEvent.expected_duration ? parseInt(editEvent.expected_duration) : undefined,
       }
     });
     setShowEditDialog(false);
@@ -101,6 +106,7 @@ const EventScheduler = () => {
       event_type: event.event_type || 'wedding',
       ritual_category: event.ritual_category || '',
       expected_attendees: event.expected_attendees?.toString() || '',
+      expected_duration: event.expected_duration?.toString() || '',
     });
     setShowEditDialog(true);
   };
@@ -371,6 +377,24 @@ const EventScheduler = () => {
               className="col-span-3"
               value={editEvent.expected_attendees}
               onChange={(e) => setEditEvent({ ...editEvent, expected_attendees: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-duration" className="text-right">
+              Duration
+            </Label>
+            <Input 
+              id="edit-duration" 
+              type="number" 
+              placeholder="Duration in minutes" 
+              className="col-span-3"
+              value={editEvent.expected_duration}
+              onChange={(e) => setEditEvent({ ...editEvent, expected_duration: e.target.value })}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -705,6 +729,24 @@ const EventScheduler = () => {
                 className="col-span-3"
                 value={newEvent.expected_attendees}
                 onChange={(e) => setNewEvent({ ...newEvent, expected_attendees: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="duration" className="text-right">
+                Duration
+              </Label>
+              <Input 
+                id="duration" 
+                type="number" 
+                placeholder="Duration in minutes" 
+                className="col-span-3"
+                value={newEvent.expected_duration}
+                onChange={(e) => setNewEvent({ ...newEvent, expected_duration: e.target.value })}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();

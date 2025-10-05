@@ -22,6 +22,7 @@ export interface Event {
   started_at?: string;
   ended_at?: string;
   actual_duration?: number;
+  expected_duration?: number;
 }
 
 export interface EventTemplate {

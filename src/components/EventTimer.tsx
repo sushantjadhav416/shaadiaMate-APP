@@ -20,6 +20,18 @@ export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, i
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-complete event when duration is reached
+  useEffect(() => {
+    if (event.status === 'ongoing' && event.started_at && event.expected_duration) {
+      const startTime = new Date(event.started_at).getTime();
+      const elapsed = Math.floor((currentTime.getTime() - startTime) / 60000); // in minutes
+      
+      if (elapsed >= event.expected_duration) {
+        onStatusUpdate(event.id, 'ended');
+      }
+    }
+  }, [currentTime, event.status, event.started_at, event.expected_duration, event.id, onStatusUpdate]);
+
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -64,6 +76,11 @@ export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, i
               : getElapsedTime()
             }
           </Badge>
+          {event.expected_duration && (
+            <span className="text-xs text-muted-foreground">
+              / {formatDuration(event.expected_duration)}
+            </span>
+          )}
         </div>
       </div>
 
