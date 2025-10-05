@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Clock, Play, Square, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ interface EventTimerProps {
 
 export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, isUpdating }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const autoCompletedRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -20,13 +21,21 @@ export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, i
     return () => clearInterval(timer);
   }, []);
 
-  // Auto-complete event when duration is reached
+  // Reset auto-complete flag when event status changes
   useEffect(() => {
-    if (event.status === 'ongoing' && event.started_at && event.expected_duration) {
+    if (event.status !== 'ongoing') {
+      autoCompletedRef.current = false;
+    }
+  }, [event.status]);
+
+  // Auto-complete event when duration is reached (only once)
+  useEffect(() => {
+    if (event.status === 'ongoing' && event.started_at && event.expected_duration && !autoCompletedRef.current) {
       const startTime = new Date(event.started_at).getTime();
       const elapsed = Math.floor((currentTime.getTime() - startTime) / 60000); // in minutes
       
       if (elapsed >= event.expected_duration) {
+        autoCompletedRef.current = true;
         onStatusUpdate(event.id, 'ended');
       }
     }
