@@ -11,13 +11,7 @@ interface EventTimerProps {
 
 export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, isUpdating }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const autoCompletedRef = useRef(false);
-  const onStatusUpdateRef = useRef(onStatusUpdate);
-
-  // Update ref when callback changes
-  useEffect(() => {
-    onStatusUpdateRef.current = onStatusUpdate;
-  }, [onStatusUpdate]);
+  const hasAutoCompletedRef = useRef<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -27,25 +21,36 @@ export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, i
     return () => clearInterval(timer);
   }, []);
 
-  // Reset auto-complete flag when event status changes
+  // Reset auto-complete tracking when event restarts
   useEffect(() => {
-    if (event.status !== 'ongoing') {
-      autoCompletedRef.current = false;
+    if (event.status === 'confirmed' || event.status === 'planning') {
+      hasAutoCompletedRef.current = null;
     }
   }, [event.status]);
 
-  // Auto-complete event when duration is reached (only once)
+  // Check if event should auto-complete
   useEffect(() => {
-    if (event.status === 'ongoing' && event.started_at && event.expected_duration && !autoCompletedRef.current) {
+    // Only auto-complete if:
+    // 1. Event is ongoing
+    // 2. Has started_at timestamp
+    // 3. Has expected_duration set
+    // 4. Haven't already auto-completed this event instance
+    if (
+      event.status === 'ongoing' && 
+      event.started_at && 
+      event.expected_duration &&
+      hasAutoCompletedRef.current !== event.id
+    ) {
       const startTime = new Date(event.started_at).getTime();
-      const elapsed = Math.floor((currentTime.getTime() - startTime) / 60000); // in minutes
+      const elapsedMs = currentTime.getTime() - startTime;
+      const elapsedMinutes = Math.floor(elapsedMs / 60000);
       
-      if (elapsed >= event.expected_duration) {
-        autoCompletedRef.current = true;
-        onStatusUpdateRef.current(event.id, 'ended');
+      if (elapsedMinutes >= event.expected_duration) {
+        hasAutoCompletedRef.current = event.id;
+        onStatusUpdate(event.id, 'ended');
       }
     }
-  }, [currentTime, event.status, event.started_at, event.expected_duration, event.id]);
+  }, [currentTime, event.status, event.started_at, event.expected_duration, event.id, onStatusUpdate]);
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -64,15 +69,15 @@ export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, i
   };
 
   const handleStart = () => {
-    onStatusUpdateRef.current(event.id, 'ongoing');
+    onStatusUpdate(event.id, 'ongoing');
   };
 
   const handleEnd = () => {
-    onStatusUpdateRef.current(event.id, 'ended');
+    onStatusUpdate(event.id, 'ended');
   };
 
   const handleRestart = () => {
-    onStatusUpdateRef.current(event.id, 'confirmed', { restart: true });
+    onStatusUpdate(event.id, 'confirmed', { restart: true });
   };
 
   if (event.status === 'planning' || event.status === 'draft') {
