@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Calendar, Users, MapPin, Clock, Plus, Edit, Eye, ChevronLeft, ChevronRight, Sparkles, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -116,12 +116,12 @@ const EventScheduler = () => {
     setShowViewDialog(true);
   };
 
-  const handleStatusUpdate = (eventId: string, newStatus: string, extraData?: any) => {
+  const handleStatusUpdate = useCallback((eventId: string, newStatus: string, extraData?: any) => {
     updateEvent({
       eventId,
       eventData: { status: newStatus, ...extraData }
     });
-  };
+  }, [updateEvent]);
 
   const handleDeleteEvent = () => {
     if (selectedEvent) {
