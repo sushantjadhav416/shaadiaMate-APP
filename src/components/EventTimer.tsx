@@ -12,7 +12,7 @@ interface EventTimerProps {
 export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, isUpdating }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const autoCompletedEventRef = useRef<string | null>(null);
+  const hasAutoCompletedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     // Start the clock timer
@@ -27,45 +27,36 @@ export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, i
     };
   }, []);
 
-  // Reset auto-complete tracking when event changes or status changes
-  useEffect(() => {
-    // Reset if event ID changed or if status is no longer 'ongoing'
-    if (event.status !== 'ongoing' || autoCompletedEventRef.current !== event.id) {
-      if (event.status !== 'ongoing') {
-        autoCompletedEventRef.current = null;
-      }
-    }
-  }, [event.id, event.status]);
-
-  // Check for auto-completion whenever currentTime updates
-  useEffect(() => {
-    // Only auto-complete if we haven't already initiated auto-completion for this event
-    if (
-      event.status === 'ongoing' && 
-      event.started_at && 
-      event.expected_duration &&
-      autoCompletedEventRef.current !== event.id
-    ) {
-      const startTime = new Date(event.started_at).getTime();
-      const elapsedMs = currentTime.getTime() - startTime;
-      const elapsedMinutes = Math.floor(elapsedMs / 60000);
+  // Check for auto-completion on every render (not in useEffect)
+  // This prevents infinite loops from dependency changes
+  if (
+    event.status === 'ongoing' && 
+    event.started_at && 
+    event.expected_duration &&
+    !hasAutoCompletedRef.current.has(event.id)
+  ) {
+    const startTime = new Date(event.started_at).getTime();
+    const elapsedMs = currentTime.getTime() - startTime;
+    const elapsedMinutes = Math.floor(elapsedMs / 60000);
+    
+    // If duration is reached, mark as completed and trigger update
+    if (elapsedMinutes >= event.expected_duration) {
+      // Mark this event as auto-completed to prevent multiple calls
+      hasAutoCompletedRef.current.add(event.id);
       
-      // If duration is reached, auto-complete
-      if (elapsedMinutes >= event.expected_duration) {
-        // Mark this event as auto-completed BEFORE calling onStatusUpdate
-        autoCompletedEventRef.current = event.id;
-        
-        // Call the status update
+      // Schedule the status update for the next tick to avoid state updates during render
+      setTimeout(() => {
         onStatusUpdate(event.id, 'ended');
-        
-        // Clean up timer
-        if (timerIntervalRef.current) {
-          clearInterval(timerIntervalRef.current);
-          timerIntervalRef.current = null;
-        }
-      }
+      }, 0);
     }
-  }, [currentTime, event.id, event.status, event.started_at, event.expected_duration])
+  }
+
+  // Clean up completed events from the tracking set when status changes
+  if (event.status !== 'ongoing' && hasAutoCompletedRef.current.has(event.id)) {
+    // If event is no longer ongoing, we can remove it from our tracking
+    // This allows the same event to be restarted later
+    hasAutoCompletedRef.current.delete(event.id);
+  }
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
