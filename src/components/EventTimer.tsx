@@ -12,6 +12,7 @@ interface EventTimerProps {
 export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, isUpdating }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autoCompletedEventRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Start the clock timer
@@ -26,24 +27,45 @@ export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, i
     };
   }, []);
 
+  // Reset auto-complete tracking when event changes or status changes
+  useEffect(() => {
+    // Reset if event ID changed or if status is no longer 'ongoing'
+    if (event.status !== 'ongoing' || autoCompletedEventRef.current !== event.id) {
+      if (event.status !== 'ongoing') {
+        autoCompletedEventRef.current = null;
+      }
+    }
+  }, [event.id, event.status]);
+
   // Check for auto-completion whenever currentTime updates
   useEffect(() => {
-    if (event.status === 'ongoing' && event.started_at && event.expected_duration) {
+    // Only auto-complete if we haven't already initiated auto-completion for this event
+    if (
+      event.status === 'ongoing' && 
+      event.started_at && 
+      event.expected_duration &&
+      autoCompletedEventRef.current !== event.id
+    ) {
       const startTime = new Date(event.started_at).getTime();
       const elapsedMs = currentTime.getTime() - startTime;
       const elapsedMinutes = Math.floor(elapsedMs / 60000);
       
       // If duration is reached, auto-complete
       if (elapsedMinutes >= event.expected_duration) {
-        // Call the status update and clean up timer
+        // Mark this event as auto-completed BEFORE calling onStatusUpdate
+        autoCompletedEventRef.current = event.id;
+        
+        // Call the status update
+        onStatusUpdate(event.id, 'ended');
+        
+        // Clean up timer
         if (timerIntervalRef.current) {
           clearInterval(timerIntervalRef.current);
           timerIntervalRef.current = null;
         }
-        onStatusUpdate(event.id, 'ended');
       }
     }
-  }, [currentTime]); // Only depend on currentTime, not on onStatusUpdate
+  }, [currentTime, event.id, event.status, event.started_at, event.expected_duration])
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
