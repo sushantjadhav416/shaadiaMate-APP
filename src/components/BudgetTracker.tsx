@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -11,98 +10,205 @@ import {
   DollarSign, 
   Plus, 
   PieChart, 
-  TrendingUp, 
-  TrendingDown,
-  Edit,
-  Trash2,
   Sparkles,
   Calculator,
   Receipt,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
+import { useBudget } from '@/hooks/useBudget';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const CATEGORY_ICONS: Record<string, string> = {
+  'Venue': '🏛️',
+  'Food & Catering': '🍽️',
+  'Photography': '📸',
+  'Decoration': '🌸',
+  'Attire & Jewelry': '👗',
+  'Music & Entertainment': '🎵',
+  'Transportation': '🚗',
+  'Miscellaneous': '📝',
+};
+
+const CATEGORIES = Object.keys(CATEGORY_ICONS);
 
 const BudgetTracker = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const { budgetItems, budgetSummary, isLoading, createBudgetItem, deleteBudgetItem, isCreating, isDeleting } = useBudget();
+  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    item_name: '',
+    category: '',
+    estimated_cost: '',
+    actual_cost: '',
+    vendor: '',
+    payment_date: '',
+    status: 'planned' as 'planned' | 'paid' | 'pending',
+    notes: '',
+  });
 
-  const totalBudget = 500000;
-  const totalSpent = 255000;
-  const remainingBudget = totalBudget - totalSpent;
-
-  const budgetCategories = [
-    { name: 'Venue', budget: 150000, spent: 120000, color: 'bg-pink-500', icon: '🏛️' },
-    { name: 'Food & Catering', budget: 100000, spent: 85000, color: 'bg-orange-500', icon: '🍽️' },
-    { name: 'Photography', budget: 50000, spent: 25000, color: 'bg-blue-500', icon: '📸' },
-    { name: 'Decoration', budget: 80000, spent: 15000, color: 'bg-green-500', icon: '🌸' },
-    { name: 'Attire & Jewelry', budget: 60000, spent: 10000, color: 'bg-purple-500', icon: '👗' },
-    { name: 'Music & Entertainment', budget: 30000, spent: 0, color: 'bg-yellow-500', icon: '🎵' },
-    { name: 'Transportation', budget: 20000, spent: 0, color: 'bg-indigo-500', icon: '🚗' },
-    { name: 'Miscellaneous', budget: 10000, spent: 0, color: 'bg-gray-500', icon: '📝' },
-  ];
-
-  const recentExpenses = [
-    { id: 1, description: 'Venue Booking Advance', amount: 50000, category: 'Venue', date: '2024-11-15', type: 'expense' },
-    { id: 2, description: 'Wedding Lehenga', amount: 45000, category: 'Attire & Jewelry', date: '2024-11-10', type: 'expense' },
-    { id: 3, description: 'Catering Advance', amount: 30000, category: 'Food & Catering', date: '2024-11-08', type: 'expense' },
-    { id: 4, description: 'Photography Package', amount: 25000, category: 'Photography', date: '2024-11-05', type: 'expense' },
-    { id: 5, description: 'Decoration Flowers', amount: 15000, category: 'Decoration', date: '2024-11-03', type: 'expense' },
-  ];
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createBudgetItem({
+      item_name: formData.item_name,
+      category: formData.category,
+      estimated_cost: parseFloat(formData.estimated_cost) || 0,
+      actual_cost: parseFloat(formData.actual_cost) || 0,
+      vendor: formData.vendor || undefined,
+      payment_date: formData.payment_date || undefined,
+      status: formData.status,
+      notes: formData.notes || undefined,
+    });
+    setIsDialogOpen(false);
+    setFormData({
+      item_name: '',
+      category: '',
+      estimated_cost: '',
+      actual_cost: '',
+      vendor: '',
+      payment_date: '',
+      status: 'planned',
+      notes: '',
+    });
+  };
 
   const AddExpenseDialog = () => (
-    <Dialog>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button className="hero-button">
           <Plus className="h-4 w-4 mr-2" />
           Add Expense
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Add New Expense</DialogTitle>
-          <DialogDescription>
-            Record a new expense for your wedding budget
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input id="description" placeholder="e.g., Venue booking deposit" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+      <DialogContent className="sm:max-w-[500px]">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Add New Expense</DialogTitle>
+            <DialogDescription>
+              Record a new expense for your wedding budget
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (₹)</Label>
-              <Input id="amount" type="number" placeholder="Enter amount" />
+              <Label htmlFor="item_name">Item Name *</Label>
+              <Input 
+                id="item_name" 
+                placeholder="e.g., Venue booking deposit" 
+                value={formData.item_name}
+                onChange={(e) => setFormData({ ...formData, item_name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="category">Category *</Label>
+                <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        <div className="flex items-center space-x-2">
+                          <span>{CATEGORY_ICONS[category]}</span>
+                          <span>{category}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="planned">Planned</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="estimated_cost">Estimated Cost (₹)</Label>
+                <Input 
+                  id="estimated_cost" 
+                  type="number" 
+                  placeholder="0" 
+                  value={formData.estimated_cost}
+                  onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="actual_cost">Actual Cost (₹)</Label>
+                <Input 
+                  id="actual_cost" 
+                  type="number" 
+                  placeholder="0" 
+                  value={formData.actual_cost}
+                  onChange={(e) => setFormData({ ...formData, actual_cost: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="vendor">Vendor</Label>
+                <Input 
+                  id="vendor" 
+                  placeholder="Vendor name" 
+                  value={formData.vendor}
+                  onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="payment_date">Payment Date</Label>
+                <Input 
+                  id="payment_date" 
+                  type="date" 
+                  value={formData.payment_date}
+                  onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {budgetCategories.map((category) => (
-                    <SelectItem key={category.name} value={category.name}>
-                      <div className="flex items-center space-x-2">
-                        <span>{category.icon}</span>
-                        <span>{category.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="notes">Notes</Label>
+              <Input 
+                id="notes" 
+                placeholder="Additional notes" 
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input id="date" type="date" />
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+            <Button type="submit" className="hero-button" disabled={isCreating}>
+              {isCreating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Add Expense
+            </Button>
           </div>
-        </div>
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline">Cancel</Button>
-          <Button className="hero-button">Add Expense</Button>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 space-y-8" style={{ background: 'var(--gradient-soft)' }}>
+        <Skeleton className="h-12 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+        <Skeleton className="h-96" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6 space-y-8" style={{ background: 'var(--gradient-soft)' }}>
@@ -135,7 +241,7 @@ const BudgetTracker = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold mb-2">₹{totalBudget.toLocaleString('en-IN')}</div>
+            <div className="text-3xl font-bold mb-2">₹{budgetSummary.totalBudget.toLocaleString('en-IN')}</div>
             <p className="text-sm text-muted-foreground">Allocated for wedding</p>
           </CardContent>
         </Card>
@@ -148,9 +254,11 @@ const BudgetTracker = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold mb-2 text-warning">₹{totalSpent.toLocaleString('en-IN')}</div>
-            <Progress value={(totalSpent / totalBudget) * 100} className="mb-2" />
-            <p className="text-sm text-muted-foreground">{Math.round((totalSpent / totalBudget) * 100)}% of budget used</p>
+            <div className="text-3xl font-bold mb-2 text-warning">₹{budgetSummary.totalSpent.toLocaleString('en-IN')}</div>
+            <Progress value={budgetSummary.totalBudget > 0 ? (budgetSummary.totalSpent / budgetSummary.totalBudget) * 100 : 0} className="mb-2" />
+            <p className="text-sm text-muted-foreground">
+              {budgetSummary.totalBudget > 0 ? Math.round((budgetSummary.totalSpent / budgetSummary.totalBudget) * 100) : 0}% of budget used
+            </p>
           </CardContent>
         </Card>
 
@@ -162,7 +270,7 @@ const BudgetTracker = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold mb-2 text-success">₹{remainingBudget.toLocaleString('en-IN')}</div>
+            <div className="text-3xl font-bold mb-2 text-success">₹{budgetSummary.remaining.toLocaleString('en-IN')}</div>
             <p className="text-sm text-muted-foreground">Available to spend</p>
           </CardContent>
         </Card>
@@ -178,46 +286,53 @@ const BudgetTracker = () => {
           <CardDescription>Track spending across different categories</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {budgetCategories.map((category) => {
-              const percentage = (category.spent / category.budget) * 100;
-              const isOverBudget = category.spent > category.budget;
-              
-              return (
-                <div key={category.name} className="p-4 rounded-lg border bg-secondary/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-lg">{category.icon}</span>
-                      <span className="font-medium text-sm">{category.name}</span>
+          {budgetSummary.categoryBreakdown.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No budget items yet. Add your first expense to get started!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {budgetSummary.categoryBreakdown.map((category) => {
+                const percentage = category.estimated > 0 ? (category.spent / category.estimated) * 100 : 0;
+                const isOverBudget = category.spent > category.estimated;
+                
+                return (
+                  <div key={category.category} className="p-4 rounded-lg border bg-secondary/20">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">{CATEGORY_ICONS[category.category] || '📝'}</span>
+                        <span className="font-medium text-sm">{category.category}</span>
+                      </div>
+                      {isOverBudget && (
+                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                      )}
                     </div>
-                    {isOverBudget && (
-                      <AlertTriangle className="h-4 w-4 text-destructive" />
-                    )}
+                    
+                    <div className="space-y-2">
+                      <Progress 
+                        value={Math.min(percentage, 100)} 
+                        className="h-2"
+                      />
+                      <div className="flex justify-between text-xs">
+                        <span className={isOverBudget ? 'text-destructive font-medium' : 'text-muted-foreground'}>
+                          ₹{category.spent.toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-muted-foreground">
+                          ₹{category.estimated.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      <div className="text-xs text-center">
+                        <span className={`font-medium ${isOverBudget ? 'text-destructive' : 'text-muted-foreground'}`}>
+                          {Math.round(percentage)}% used
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Progress 
-                      value={Math.min(percentage, 100)} 
-                      className="h-2"
-                    />
-                    <div className="flex justify-between text-xs">
-                      <span className={isOverBudget ? 'text-destructive font-medium' : 'text-muted-foreground'}>
-                        ₹{category.spent.toLocaleString('en-IN')}
-                      </span>
-                      <span className="text-muted-foreground">
-                        ₹{category.budget.toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                    <div className="text-xs text-center">
-                      <span className={`font-medium ${isOverBudget ? 'text-destructive' : 'text-muted-foreground'}`}>
-                        {Math.round(percentage)}% used
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -226,88 +341,88 @@ const BudgetTracker = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Receipt className="h-5 w-5" />
-            <span>Recent Expenses</span>
+            <span>All Expenses</span>
           </CardTitle>
-          <CardDescription>Your latest transactions</CardDescription>
+          <CardDescription>Your wedding budget items</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentExpenses.map((expense) => (
-              <div key={expense.id} className="flex items-center justify-between p-4 rounded-lg border bg-secondary/10">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Receipt className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">{expense.description}</h4>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <span>{expense.category}</span>
-                      <span>•</span>
-                      <span>{new Date(expense.date).toLocaleDateString('en-IN')}</span>
+          {budgetItems.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No expenses recorded yet. Click "Add Expense" to get started!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {budgetItems.map((item) => (
+                <div key={item.id} className="flex items-center justify-between p-4 rounded-lg border bg-secondary/10">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <span className="text-xl">{CATEGORY_ICONS[item.category] || '📝'}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{item.item_name}</h4>
+                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                        <span>{item.category}</span>
+                        {item.vendor && (
+                          <>
+                            <span>•</span>
+                            <span>{item.vendor}</span>
+                          </>
+                        )}
+                        {item.payment_date && (
+                          <>
+                            <span>•</span>
+                            <span>{new Date(item.payment_date).toLocaleDateString('en-IN')}</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          item.status === 'paid' ? 'bg-success/20 text-success' :
+                          item.status === 'pending' ? 'bg-warning/20 text-warning' :
+                          'bg-secondary text-muted-foreground'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg font-semibold">
-                    ₹{expense.amount.toLocaleString('en-IN')}
-                  </span>
-                  <div className="flex space-x-1">
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Trash2 className="h-4 w-4" />
+                  <div className="flex items-center space-x-3">
+                    <div className="text-right">
+                      {item.actual_cost && item.actual_cost > 0 ? (
+                        <>
+                          <div className="text-lg font-semibold">
+                            ₹{item.actual_cost.toLocaleString('en-IN')}
+                          </div>
+                          {item.estimated_cost && item.estimated_cost > 0 && (
+                            <div className="text-xs text-muted-foreground line-through">
+                              ₹{item.estimated_cost.toLocaleString('en-IN')}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-lg font-semibold">
+                          ₹{(item.estimated_cost || 0).toLocaleString('en-IN')}
+                        </div>
+                      )}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => deleteBudgetItem(item.id)}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-6 pt-4 border-t">
-            <Button variant="outline" className="w-full">
-              View All Expenses
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* AI Budget Suggestions */}
-      <Card className="wedding-card border-2 border-accent/20">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Sparkles className="h-5 w-5 text-accent" />
-            <span>AI Budget Insights</span>
-          </CardTitle>
-          <CardDescription>Smart recommendations for your wedding budget</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-              <div className="flex items-center space-x-2 mb-2">
-                <TrendingUp className="h-4 w-4 text-success" />
-                <span className="font-medium text-success">Money Saved</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                You're ₹65,000 under budget on decoration. Consider upgrading to premium flowers.
-              </p>
+              ))}
             </div>
-            
-            <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
-              <div className="flex items-center space-x-2 mb-2">
-                <AlertTriangle className="h-4 w-4 text-warning" />
-                <span className="font-medium text-warning">Budget Alert</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Venue costs are 80% of budget. Consider negotiating final payment terms.
-              </p>
-            </div>
-          </div>
-          
-          <Button className="accent-button w-full">
-            <Sparkles className="h-4 w-4 mr-2" />
-            Get Detailed Budget Analysis
-          </Button>
+          )}
         </CardContent>
       </Card>
     </div>
