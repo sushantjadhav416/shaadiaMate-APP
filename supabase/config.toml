@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.reminder-system]
 verify_jwt = false
+
+[functions.budget-optimizer]
+verify_jwt = true

@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { useBudget, BudgetItem } from '@/hooks/useBudget';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const CATEGORY_ICONS: Record<string, string> = {
   'Venue': '🏛️',
@@ -34,9 +36,15 @@ const CATEGORIES = Object.keys(CATEGORY_ICONS);
 
 const BudgetTracker = () => {
   const { budgetItems, budgetSummary, isLoading, createBudgetItem, updateBudgetItem, deleteBudgetItem, isCreating, isUpdating, isDeleting } = useBudget();
+  const { toast } = useToast();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<BudgetItem | null>(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<string>('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [guestCount, setGuestCount] = useState<string>('');
+  
   const [formData, setFormData] = useState({
     item_name: '',
     category: '',
@@ -103,6 +111,45 @@ const BudgetTracker = () => {
       notes: item.notes || '',
     });
     setIsDialogOpen(true);
+  };
+
+  const handleOptimizeBudget = async () => {
+    if (budgetItems.length === 0) {
+      toast({
+        title: "No Budget Items",
+        description: "Please add some expenses first to get AI optimization suggestions.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsOptimizing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('budget-optimizer', {
+        body: {
+          budgetItems,
+          guestCount: guestCount ? parseInt(guestCount) : undefined,
+        },
+      });
+
+      if (error) throw error;
+
+      setAiSuggestions(data.suggestions);
+      setShowSuggestions(true);
+      toast({
+        title: "AI Suggestions Ready",
+        description: "Your budget has been analyzed by AI!",
+      });
+    } catch (error) {
+      console.error('Error optimizing budget:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate AI suggestions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsOptimizing(false);
+    }
   };
 
   const AddExpenseDialog = () => (
@@ -262,10 +309,51 @@ const BudgetTracker = () => {
           </p>
         </div>
         <div className="flex items-center space-x-4 mt-4 lg:mt-0">
-          <Button variant="outline" className="accent-button">
-            <Sparkles className="h-4 w-4 mr-2" />
-            AI Budget Optimizer
-          </Button>
+          <Dialog open={showSuggestions} onOpenChange={setShowSuggestions}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="accent-button" 
+                onClick={handleOptimizeBudget}
+                disabled={isOptimizing}
+              >
+                {isOptimizing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                AI Budget Optimizer
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center space-x-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <span>AI Budget Optimization Suggestions</span>
+                </DialogTitle>
+                <DialogDescription>
+                  Personalized recommendations to optimize your wedding budget
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="guest_count">Guest Count (Optional)</Label>
+                  <Input 
+                    id="guest_count" 
+                    type="number" 
+                    placeholder="Enter expected guest count" 
+                    value={guestCount}
+                    onChange={(e) => setGuestCount(e.target.value)}
+                  />
+                </div>
+                {aiSuggestions && (
+                  <div className="prose prose-sm max-w-none bg-secondary/20 p-4 rounded-lg">
+                    <div className="whitespace-pre-wrap">{aiSuggestions}</div>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
           <AddExpenseDialog />
         </div>
       </div>
