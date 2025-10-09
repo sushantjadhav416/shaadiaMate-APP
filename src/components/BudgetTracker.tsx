@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   Loader2
 } from 'lucide-react';
-import { useBudget } from '@/hooks/useBudget';
+import { useBudget, BudgetItem } from '@/hooks/useBudget';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -33,9 +33,10 @@ const CATEGORY_ICONS: Record<string, string> = {
 const CATEGORIES = Object.keys(CATEGORY_ICONS);
 
 const BudgetTracker = () => {
-  const { budgetItems, budgetSummary, isLoading, createBudgetItem, deleteBudgetItem, isCreating, isDeleting } = useBudget();
+  const { budgetItems, budgetSummary, isLoading, createBudgetItem, updateBudgetItem, deleteBudgetItem, isCreating, isUpdating, isDeleting } = useBudget();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<BudgetItem | null>(null);
   const [formData, setFormData] = useState({
     item_name: '',
     category: '',
@@ -49,17 +50,34 @@ const BudgetTracker = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createBudgetItem({
-      item_name: formData.item_name,
-      category: formData.category,
-      estimated_cost: parseFloat(formData.estimated_cost) || 0,
-      actual_cost: parseFloat(formData.actual_cost) || 0,
-      vendor: formData.vendor || undefined,
-      payment_date: formData.payment_date || undefined,
-      status: formData.status,
-      notes: formData.notes || undefined,
-    });
+    if (editingItem) {
+      updateBudgetItem({
+        id: editingItem.id,
+        updates: {
+          item_name: formData.item_name,
+          category: formData.category,
+          estimated_cost: parseFloat(formData.estimated_cost) || 0,
+          actual_cost: parseFloat(formData.actual_cost) || 0,
+          vendor: formData.vendor || undefined,
+          payment_date: formData.payment_date || undefined,
+          status: formData.status,
+          notes: formData.notes || undefined,
+        }
+      });
+    } else {
+      createBudgetItem({
+        item_name: formData.item_name,
+        category: formData.category,
+        estimated_cost: parseFloat(formData.estimated_cost) || 0,
+        actual_cost: parseFloat(formData.actual_cost) || 0,
+        vendor: formData.vendor || undefined,
+        payment_date: formData.payment_date || undefined,
+        status: formData.status,
+        notes: formData.notes || undefined,
+      });
+    }
     setIsDialogOpen(false);
+    setEditingItem(null);
     setFormData({
       item_name: '',
       category: '',
@@ -72,8 +90,26 @@ const BudgetTracker = () => {
     });
   };
 
+  const handleEdit = (item: BudgetItem) => {
+    setEditingItem(item);
+    setFormData({
+      item_name: item.item_name,
+      category: item.category,
+      estimated_cost: item.estimated_cost?.toString() || '',
+      actual_cost: item.actual_cost?.toString() || '',
+      vendor: item.vendor || '',
+      payment_date: item.payment_date ? new Date(item.payment_date).toISOString().split('T')[0] : '',
+      status: item.status,
+      notes: item.notes || '',
+    });
+    setIsDialogOpen(true);
+  };
+
   const AddExpenseDialog = () => (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={(open) => {
+      setIsDialogOpen(open);
+      if (!open) setEditingItem(null);
+    }}>
       <DialogTrigger asChild>
         <Button className="hero-button">
           <Plus className="h-4 w-4 mr-2" />
@@ -83,9 +119,9 @@ const BudgetTracker = () => {
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add New Expense</DialogTitle>
+            <DialogTitle>{editingItem ? 'Edit Expense' : 'Add New Expense'}</DialogTitle>
             <DialogDescription>
-              Record a new expense for your wedding budget
+              {editingItem ? 'Update your expense details' : 'Record a new expense for your wedding budget'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -185,10 +221,13 @@ const BudgetTracker = () => {
             </div>
           </div>
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button type="submit" className="hero-button" disabled={isCreating}>
-              {isCreating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Add Expense
+            <Button type="button" variant="outline" onClick={() => {
+              setIsDialogOpen(false);
+              setEditingItem(null);
+            }}>Cancel</Button>
+            <Button type="submit" className="hero-button" disabled={isCreating || isUpdating}>
+              {(isCreating || isUpdating) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {editingItem ? 'Update Expense' : 'Add Expense'}
             </Button>
           </div>
         </form>
@@ -406,18 +445,28 @@ const BudgetTracker = () => {
                         </div>
                       )}
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => deleteBudgetItem(item.id)}
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <AlertTriangle className="h-4 w-4" />
-                      )}
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleEdit(item)}
+                        disabled={isUpdating || isDeleting}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => deleteBudgetItem(item.id)}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          'Delete'
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
