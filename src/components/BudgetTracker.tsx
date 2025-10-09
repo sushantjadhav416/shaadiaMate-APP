@@ -313,15 +313,9 @@ const BudgetTracker = () => {
             <DialogTrigger asChild>
               <Button 
                 variant="outline" 
-                className="accent-button" 
-                onClick={handleOptimizeBudget}
-                disabled={isOptimizing}
+                className="accent-button"
               >
-                {isOptimizing ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4 mr-2" />
-                )}
+                <Sparkles className="h-4 w-4 mr-2" />
                 AI Budget Optimizer
               </Button>
             </DialogTrigger>
@@ -338,17 +332,64 @@ const BudgetTracker = () => {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="guest_count">Guest Count (Optional)</Label>
-                  <Input 
-                    id="guest_count" 
-                    type="number" 
-                    placeholder="Enter expected guest count" 
-                    value={guestCount}
-                    onChange={(e) => setGuestCount(e.target.value)}
-                  />
+                  <div className="flex space-x-2">
+                    <Input 
+                      id="guest_count" 
+                      type="number" 
+                      placeholder="Enter expected guest count" 
+                      value={guestCount}
+                      onChange={(e) => setGuestCount(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={handleOptimizeBudget}
+                      disabled={isOptimizing}
+                      className="hero-button"
+                    >
+                      {isOptimizing ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : null}
+                      Analyze
+                    </Button>
+                  </div>
                 </div>
                 {aiSuggestions && (
-                  <div className="prose prose-sm max-w-none bg-secondary/20 p-4 rounded-lg">
-                    <div className="whitespace-pre-wrap">{aiSuggestions}</div>
+                  <div className="space-y-4">
+                    <div className="border-t pt-4">
+                      <h3 className="font-semibold text-lg mb-3 flex items-center space-x-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        <span>AI Recommendations</span>
+                      </h3>
+                      <div className="space-y-3 bg-secondary/10 p-4 rounded-lg">
+                        {aiSuggestions.split('\n').filter(line => line.trim()).map((line, index) => {
+                          const isHeader = line.match(/^#+\s/);
+                          const isBullet = line.match(/^[-*]\s/);
+                          const isNumbered = line.match(/^\d+\.\s/);
+                          
+                          if (isHeader) {
+                            return (
+                              <h4 key={index} className="font-semibold text-base mt-3 mb-2">
+                                {line.replace(/^#+\s/, '')}
+                              </h4>
+                            );
+                          } else if (isBullet || isNumbered) {
+                            return (
+                              <div key={index} className="flex items-start space-x-2 ml-4">
+                                <span className="text-primary mt-1">•</span>
+                                <p className="text-sm flex-1">{line.replace(/^[-*]\s/, '').replace(/^\d+\.\s/, '')}</p>
+                              </div>
+                            );
+                          } else if (line.trim()) {
+                            return (
+                              <p key={index} className="text-sm leading-relaxed">
+                                {line}
+                              </p>
+                            );
+                          }
+                          return null;
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
