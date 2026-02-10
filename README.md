@@ -167,8 +167,3 @@ Planned next steps:
 - API contracts
 - UI wireframes
 - AI prompt architecture
-
----
-
-## 📄 License
-MIT
