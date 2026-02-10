@@ -1,73 +1,174 @@
-# Welcome to your Lovable project
+# 💍 ShaadiMate  
+### AI-Powered Wedding Planning & Management Platform
 
-## Project info
+ShaadiMate is a **centralized, AI-assisted wedding planning application** built using **Vibe Coding principles**.  
+It helps couples and families plan, track, and manage every aspect of a wedding—from budgeting and guest lists to rituals, vendors, and timelines—without chaos, spreadsheets, or last-minute panic.
 
-**URL**: https://lovable.dev/projects/c2cd3146-5e86-4c3e-bf62-ae68b956bae5
+Instead of juggling WhatsApp groups, Excel files, phone calls, and memory, ShaadiMate brings **structure, automation, and intelligence** into one platform.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🧠 What Is Vibe Coding?
 
-**Use Lovable**
+**Vibe Coding** is a modern development approach where:
+- AI acts as a **co-planner and reasoning partner**
+- Development follows **intent → structure → feedback → refinement**
+- Features evolve through continuous AI-assisted iteration
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c2cd3146-5e86-4c3e-bf62-ae68b956bae5) and start prompting.
+In ShaadiMate:
+- Wedding data becomes **context for AI**, not just stored records
+- AI augments human decision-making instead of replacing it
+- The product is designed around **real human workflows**, not just CRUD operations
 
-Changes made via Lovable will be committed automatically to this repo.
+ShaadiMate is both:
+- a **product built using Vibe Coding**, and
+- a **real-world demonstration of GenAI-driven product design**
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🎯 Project Goal
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+To create a **single source of truth** for wedding planning that:
+- Reduces stress and miscommunication
+- Improves coordination among families and vendors
+- Uses AI to recommend, remind, and optimize planning decisions
 
-Follow these steps:
+---
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 🧩 Core Features & Modules
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 🏠 Wedding Dashboard
+- Overview of budget, events, guests, and tasks
+- AI-powered daily planner & alerts
+- Countdown to the wedding day
 
-# Step 3: Install the necessary dependencies.
-npm i
+---
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+### 💰 Budget Management
+- Define overall wedding budget
+- Track expenses by category
+- AI-based budget suggestions by wedding type & size
+- Overspending alerts and predictions
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 📅 Event & Ritual Scheduler
+- Manage all ceremonies (Haldi, Mehendi, Sangeet, Wedding, Reception)
+- Date, time, venue, and checklist support
+- Automated reminders
+- AI-recommended traditional timelines
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 🧑‍🤝‍🧑 Guest List & Invitations
+- Guest list management with RSVP tracking
+- Auto-grouping (family, friends, VIPs)
+- Digital invites & reminders
+- Seating planner (drag-and-drop)
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+### 🛠️ Vendor & Services Manager
+- Vendor contact and contract management
+- Payment tracking
+- AI-generated vendor checklists and questions
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+### ✅ Tasks & Assignments
+- Custom to-do lists with deadlines
+- Task assignment to family/friends
+- Progress tracking with real-time updates
 
-Simply open [Lovable](https://lovable.dev/projects/c2cd3146-5e86-4c3e-bf62-ae68b956bae5) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+### 🤖 AI Assistant
+Ask questions like:
+- “Suggest trending Sangeet themes”
+- “How to plan a Haldi ceremony in 2 hours?”
+- “How can we reduce catering costs?”
 
-Yes, you can!
+Includes voice-enabled support for elderly users.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### 📂 Document & Photo Storage
+- Store contracts, invitations, photos, and PDFs
+- Auto-categorization and easy retrieval
+
+---
+
+### 📱 Mobile-First Experience
+- Designed for mobile usage
+- PWA or native mobile app support
+- Simple UI for non-technical users
+
+---
+
+## 🧠 AI Integration Ideas
+
+- GPT-based Wedding Assistant
+- Budget prediction models
+- NLP-based task reminders
+- AI chatbot for guests (RSVP, schedules, directions)
+
+---
+
+## 🏗️ Tech Stack (Recommended)
+
+### Frontend
+- React / Next.js
+- Tailwind CSS / Material UI
+
+### Backend
+- Node.js (Express) or Spring Boot
+- PostgreSQL / MongoDB
+- JWT Authentication
+- WebSockets for real-time updates
+
+### AI & Automation
+- OpenAI GPT APIs
+- LangChain
+- Optional ML models (TensorFlow / Scikit-learn)
+
+### Mobile
+- React Native / Flutter / PWA
+
+### Notifications
+- Firebase Cloud Messaging
+- Twilio (SMS)
+- SendGrid (Email)
+
+---
+
+## 🚀 Why ShaadiMate?
+
+ShaadiMate is not just a wedding planner.
+
+It showcases:
+- Full-stack engineering
+- Practical GenAI integration
+- Vibe Coding in a real-life domain
+- Human-centered product thinking
+
+---
+
+## 🔮 Future Enhancements
+- Multi-language support
+- Offline mode for remote venues
+- Emotion-aware reminders
+- Vendor marketplace integration
+
+---
+
+## 📌 Getting Started
+Planned next steps:
+- Database schema design
+- API contracts
+- UI wireframes
+- AI prompt architecture
+
+---
+
+## 📄 License
+MIT
