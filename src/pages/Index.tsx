@@ -5,6 +5,8 @@ import Login from '@/components/Login';
 import EventScheduler from '@/components/EventScheduler';
 import BudgetTracker from '@/components/BudgetTracker';
 import AIAssistant from '@/components/AIAssistant';
+import GuestManager from '@/components/GuestManager';
+import GuestDashboard from '@/components/GuestDashboard';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
@@ -70,9 +72,26 @@ const Index = () => {
     );
   }
 
+  // Check for invite token in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const inviteToken = params.get('invite');
+    if (inviteToken && user) {
+      // Auto-claim invite when logged in user opens invite link
+      supabase.functions.invoke('guest-management', {
+        body: { action: 'claim-invite', inviteToken },
+      }).then(() => {
+        // Clean URL
+        window.history.replaceState({}, '', window.location.pathname);
+      });
+    }
+  }, [user]);
+
   if (!user) {
     return <Login onLoginSuccess={() => {}} />;
   }
+
+  const isGuestUser = userProfile?.role === 'guest';
 
   const renderPage = () => {
     switch (currentPage) {
@@ -83,15 +102,7 @@ const Index = () => {
       case 'budget':
         return <BudgetTracker />;
       case 'guests':
-        return (
-          <div className="min-h-screen p-6 flex items-center justify-center" style={{ background: 'var(--gradient-soft)' }}>
-            <div className="text-center space-y-4">
-              <h1 className="text-4xl font-serif font-bold gradient-text">Guest List Manager</h1>
-              <p className="text-xl text-muted-foreground">Coming Soon! 🎉</p>
-              <p className="text-sm text-muted-foreground">Track RSVPs, manage invitations, and organize seating arrangements</p>
-            </div>
-          </div>
-        );
+        return <GuestManager />;
       case 'vendors':
         return (
           <div className="min-h-screen p-6 flex items-center justify-center" style={{ background: 'var(--gradient-soft)' }}>
@@ -116,6 +127,35 @@ const Index = () => {
         return <Dashboard />;
     }
   };
+
+  // Guest users see a different dashboard
+  if (isGuestUser) {
+    return (
+      <div className="min-h-screen bg-background">
+        <nav className="flex items-center justify-between p-6 bg-card/80 backdrop-blur-md border-b border-border/50">
+          <div className="flex items-center space-x-3">
+            <Heart className="h-8 w-8 text-primary" fill="currentColor" />
+            <div>
+              <h1 className="text-xl font-serif font-bold gradient-text">ShaadiMate</h1>
+              <p className="text-xs text-muted-foreground">Guest Portal</p>
+            </div>
+          </div>
+          <Button 
+            variant="ghost" 
+            onClick={async () => {
+              await supabase.auth.signOut();
+              setUserProfile(null);
+            }}
+          >
+            Sign Out
+          </Button>
+        </nav>
+        <main className="pb-20 lg:pb-0">
+          <GuestDashboard userProfile={userProfile} />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
