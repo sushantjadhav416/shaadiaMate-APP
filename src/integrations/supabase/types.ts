@@ -232,9 +232,12 @@ export type Database = {
           created_at: string
           dietary_restrictions: string | null
           email: string | null
+          event_id: string | null
           first_name: string
+          guest_user_id: string | null
           id: string
           invitation_sent: boolean | null
+          invite_token: string | null
           last_name: string
           notes: string | null
           phone: string | null
@@ -249,9 +252,12 @@ export type Database = {
           created_at?: string
           dietary_restrictions?: string | null
           email?: string | null
+          event_id?: string | null
           first_name: string
+          guest_user_id?: string | null
           id?: string
           invitation_sent?: boolean | null
+          invite_token?: string | null
           last_name: string
           notes?: string | null
           phone?: string | null
@@ -266,9 +272,12 @@ export type Database = {
           created_at?: string
           dietary_restrictions?: string | null
           email?: string | null
+          event_id?: string | null
           first_name?: string
+          guest_user_id?: string | null
           id?: string
           invitation_sent?: boolean | null
+          invite_token?: string | null
           last_name?: string
           notes?: string | null
           phone?: string | null
@@ -278,7 +287,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

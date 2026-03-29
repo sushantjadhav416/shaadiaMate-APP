@@ -5,6 +5,10 @@ import Login from '@/components/Login';
 import EventScheduler from '@/components/EventScheduler';
 import BudgetTracker from '@/components/BudgetTracker';
 import AIAssistant from '@/components/AIAssistant';
+import GuestManager from '@/components/GuestManager';
+import GuestDashboard from '@/components/GuestDashboard';
+import { Button } from '@/components/ui/button';
+import { Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
@@ -16,17 +20,12 @@ const Index = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Fetch user profile when user signs in
         if (session?.user) {
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
+          setTimeout(() => fetchUserProfile(session.user.id), 0);
         } else {
           setUserProfile(null);
         }
@@ -34,7 +33,6 @@ const Index = () => {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -47,13 +45,25 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Check for invite token in URL - must be before any early returns
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const inviteToken = params.get('invite');
+    if (inviteToken && user) {
+      supabase.functions.invoke('guest-management', {
+        body: { action: 'claim-invite', inviteToken },
+      }).then(() => {
+        window.history.replaceState({}, '', window.location.pathname);
+      });
+    }
+  }, [user]);
+
   const fetchUserProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('user_id', userId)
       .single();
-    
     if (data && !error) {
       setUserProfile(data);
     }
@@ -74,6 +84,8 @@ const Index = () => {
     return <Login onLoginSuccess={() => {}} />;
   }
 
+  const isGuestUser = userProfile?.role === 'guest';
+
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
@@ -83,15 +95,7 @@ const Index = () => {
       case 'budget':
         return <BudgetTracker />;
       case 'guests':
-        return (
-          <div className="min-h-screen p-6 flex items-center justify-center" style={{ background: 'var(--gradient-soft)' }}>
-            <div className="text-center space-y-4">
-              <h1 className="text-4xl font-serif font-bold gradient-text">Guest List Manager</h1>
-              <p className="text-xl text-muted-foreground">Coming Soon! 🎉</p>
-              <p className="text-sm text-muted-foreground">Track RSVPs, manage invitations, and organize seating arrangements</p>
-            </div>
-          </div>
-        );
+        return <GuestManager />;
       case 'vendors':
         return (
           <div className="min-h-screen p-6 flex items-center justify-center" style={{ background: 'var(--gradient-soft)' }}>
@@ -116,6 +120,34 @@ const Index = () => {
         return <Dashboard />;
     }
   };
+
+  if (isGuestUser) {
+    return (
+      <div className="min-h-screen bg-background">
+        <nav className="flex items-center justify-between p-6 bg-card/80 backdrop-blur-md border-b border-border/50">
+          <div className="flex items-center space-x-3">
+            <Heart className="h-8 w-8 text-primary" fill="currentColor" />
+            <div>
+              <h1 className="text-xl font-serif font-bold gradient-text">ShaadiMate</h1>
+              <p className="text-xs text-muted-foreground">Guest Portal</p>
+            </div>
+          </div>
+          <Button 
+            variant="ghost" 
+            onClick={async () => {
+              await supabase.auth.signOut();
+              setUserProfile(null);
+            }}
+          >
+            Sign Out
+          </Button>
+        </nav>
+        <main className="pb-20 lg:pb-0">
+          <GuestDashboard userProfile={userProfile} />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

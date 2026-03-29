@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.budget-optimizer]
 verify_jwt = true
+
+[functions.guest-management]
+verify_jwt = true
