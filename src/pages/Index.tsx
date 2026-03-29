@@ -7,6 +7,8 @@ import BudgetTracker from '@/components/BudgetTracker';
 import AIAssistant from '@/components/AIAssistant';
 import GuestManager from '@/components/GuestManager';
 import GuestDashboard from '@/components/GuestDashboard';
+import { Button } from '@/components/ui/button';
+import { Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
@@ -18,17 +20,12 @@ const Index = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Fetch user profile when user signs in
         if (session?.user) {
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
+          setTimeout(() => fetchUserProfile(session.user.id), 0);
         } else {
           setUserProfile(null);
         }
@@ -36,7 +33,6 @@ const Index = () => {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -49,13 +45,25 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Check for invite token in URL - must be before any early returns
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const inviteToken = params.get('invite');
+    if (inviteToken && user) {
+      supabase.functions.invoke('guest-management', {
+        body: { action: 'claim-invite', inviteToken },
+      }).then(() => {
+        window.history.replaceState({}, '', window.location.pathname);
+      });
+    }
+  }, [user]);
+
   const fetchUserProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('user_id', userId)
       .single();
-    
     if (data && !error) {
       setUserProfile(data);
     }
@@ -71,21 +79,6 @@ const Index = () => {
       </div>
     );
   }
-
-  // Check for invite token in URL
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const inviteToken = params.get('invite');
-    if (inviteToken && user) {
-      // Auto-claim invite when logged in user opens invite link
-      supabase.functions.invoke('guest-management', {
-        body: { action: 'claim-invite', inviteToken },
-      }).then(() => {
-        // Clean URL
-        window.history.replaceState({}, '', window.location.pathname);
-      });
-    }
-  }, [user]);
 
   if (!user) {
     return <Login onLoginSuccess={() => {}} />;
@@ -128,7 +121,6 @@ const Index = () => {
     }
   };
 
-  // Guest users see a different dashboard
   if (isGuestUser) {
     return (
       <div className="min-h-screen bg-background">
