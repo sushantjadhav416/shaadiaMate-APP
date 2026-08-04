@@ -131,10 +131,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      case 'get-my-invitations': {
-        break;
-      }
-
       case 'send-invite': {
         const { guestId, appUrl } = params;
         const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
@@ -235,7 +231,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      case 'get-my-invitations-impl': {
+      case 'get-my-invitations': {
         // Get all guest records linked to this user
         const { data: guestRecords, error: gError } = await supabase
           .from('guests')
