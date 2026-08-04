@@ -11,7 +11,7 @@ interface EventTimerProps {
 
 export const EventTimer: React.FC<EventTimerProps> = ({ event, onStatusUpdate, isUpdating }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasAutoCompletedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
