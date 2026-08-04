@@ -182,9 +182,13 @@ Deno.serve(async (req) => {
           }
         }
 
-        const baseUrl = (typeof appUrl === 'string' && appUrl.startsWith('http'))
-          ? appUrl.replace(/\/$/, '')
-          : 'https://id-preview--c2cd3146-5e86-4c3e-bf62-ae68b956bae5.lovable.app';
+        // Never link to the gated Lovable editor preview (id-preview--*) — those URLs
+        // ask the recipient to sign in to Lovable. Prefer an explicit APP_URL secret.
+        const configuredUrl = Deno.env.get('APP_URL');
+        const candidate = (typeof appUrl === 'string' && appUrl.startsWith('http') && !appUrl.includes('id-preview--') && !appUrl.includes('localhost'))
+          ? appUrl
+          : (configuredUrl && configuredUrl.startsWith('http') ? configuredUrl : null);
+        const baseUrl = (candidate ?? configuredUrl ?? 'https://shaadimate.lovable.app').replace(/\/$/, '');
         const inviteLink = `${baseUrl}/?invite=${token}`;
         const fromAddress = Deno.env.get('INVITE_FROM_EMAIL') || 'ShaadiMate <onboarding@resend.dev>';
 
