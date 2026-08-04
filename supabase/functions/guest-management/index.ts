@@ -132,6 +132,110 @@ Deno.serve(async (req) => {
       }
 
       case 'get-my-invitations': {
+        break;
+      }
+
+      case 'send-invite': {
+        const { guestId, appUrl } = params;
+        const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+        const resendKey = Deno.env.get('RESEND_API_KEY');
+        if (!lovableApiKey || !resendKey) {
+          return new Response(JSON.stringify({ error: 'Email sending is not configured' }), {
+            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const { data: guest, error: gErr } = await supabase
+          .from('guests')
+          .select('*')
+          .eq('id', guestId)
+          .eq('user_id', user.id)
+          .single();
+        if (gErr || !guest) {
+          return new Response(JSON.stringify({ error: 'Guest not found' }), {
+            status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (!guest.email) {
+          return new Response(JSON.stringify({ error: 'This guest has no email address' }), {
+            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        let token = guest.invite_token;
+        if (!token) {
+          token = crypto.randomUUID();
+          await supabase.from('guests').update({ invite_token: token }).eq('id', guest.id);
+        }
+
+        let eventTitle = 'our celebration';
+        let eventWhen = '';
+        let eventVenue = '';
+        if (guest.event_id) {
+          const { data: ev } = await supabase
+            .from('events')
+            .select('title, event_date, venue')
+            .eq('id', guest.event_id)
+            .single();
+          if (ev) {
+            eventTitle = ev.title;
+            eventVenue = ev.venue || '';
+            eventWhen = ev.event_date
+              ? new Date(ev.event_date).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'short' })
+              : '';
+          }
+        }
+
+        const baseUrl = (typeof appUrl === 'string' && appUrl.startsWith('http'))
+          ? appUrl.replace(/\/$/, '')
+          : 'https://id-preview--c2cd3146-5e86-4c3e-bf62-ae68b956bae5.lovable.app';
+        const inviteLink = `${baseUrl}/?invite=${token}`;
+        const fromAddress = Deno.env.get('INVITE_FROM_EMAIL') || 'ShaadiMate <onboarding@resend.dev>';
+
+        const html = `
+          <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; padding: 32px; color: #3b2f2f;">
+            <p style="letter-spacing: 3px; text-transform: uppercase; font-size: 12px; color: #b76e79;">You're invited</p>
+            <h1 style="font-size: 26px; margin: 8px 0 16px;">${eventTitle}</h1>
+            <p>Dear ${guest.first_name} ${guest.last_name},</p>
+            <p>We would be delighted to have you join us${eventWhen ? ` on <strong>${eventWhen}</strong>` : ''}${eventVenue ? ` at <strong>${eventVenue}</strong>` : ''}.</p>
+            <p>Use the link below to create your guest account (or sign in) and confirm your RSVP:</p>
+            <p style="margin: 28px 0;">
+              <a href="${inviteLink}" style="background:#b76e79;color:#fff;text-decoration:none;padding:14px 26px;border-radius:8px;display:inline-block;">View invitation &amp; RSVP</a>
+            </p>
+            <p style="font-size: 12px; color: #7a6b6b;">If the button doesn't work, copy this link: <br />${inviteLink}</p>
+          </div>`;
+
+        const emailRes = await fetch('https://connector-gateway.lovable.dev/resend/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'X-Connection-Api-Key': resendKey,
+          },
+          body: JSON.stringify({
+            from: fromAddress,
+            to: [guest.email],
+            subject: `Invitation: ${eventTitle}`,
+            html,
+          }),
+        });
+
+        if (!emailRes.ok) {
+          const details = await emailRes.text();
+          console.error(`Resend request failed [${emailRes.status}]: ${details}`);
+          return new Response(JSON.stringify({ error: 'Failed to send invitation email', status: emailRes.status, details }), {
+            status: emailRes.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        await supabase.from('guests').update({ invitation_sent: true }).eq('id', guest.id);
+
+        return new Response(JSON.stringify({ success: true, inviteLink }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'get-my-invitations-impl': {
         // Get all guest records linked to this user
         const { data: guestRecords, error: gError } = await supabase
           .from('guests')
