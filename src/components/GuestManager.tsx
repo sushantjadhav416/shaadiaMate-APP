@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { Users, Plus, Edit, Trash2, Mail, Phone, Copy, Check, Search, UserPlus } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Mail, Phone, Copy, Check, Search, UserPlus, Send, Loader2 } from 'lucide-react';
 import { useGuests, Guest } from '@/hooks/useGuests';
 import { useEvents } from '@/hooks/useEvents';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 const GuestManager = () => {
   const { events } = useEvents();
   const [selectedEventId, setSelectedEventId] = useState<string>('all');
-  const { guests, addGuest, updateGuest, deleteGuest, isAdding, isUpdating, isDeleting, isLoading } = useGuests(selectedEventId === 'all' ? undefined : selectedEventId);
+  const { guests, addGuest, updateGuest, deleteGuest, sendInvite, isSendingInvite, sendingInviteId, isAdding, isUpdating, isDeleting, isLoading } = useGuests(selectedEventId === 'all' ? undefined : selectedEventId);
   const { toast } = useToast();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -249,6 +249,7 @@ const GuestManager = () => {
                       <h3 className="font-semibold text-lg">{guest.first_name} {guest.last_name}</h3>
                       {getRsvpBadge(guest.rsvp_status)}
                       {guest.plus_one && <Badge variant="outline">+1</Badge>}
+                      {guest.invitation_sent && <Badge variant="outline" className="text-xs">Invite sent</Badge>}
                     </div>
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                       {guest.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{guest.email}</span>}
@@ -257,6 +258,20 @@ const GuestManager = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    {guest.email && (
+                      <Button
+                        size="sm"
+                        variant={guest.invitation_sent ? 'outline' : 'default'}
+                        onClick={() => sendInvite(guest.id)}
+                        disabled={isSendingInvite && sendingInviteId === guest.id}
+                        title={guest.invitation_sent ? 'Resend invitation email' : 'Send invitation email'}
+                      >
+                        {isSendingInvite && sendingInviteId === guest.id
+                          ? <Loader2 className="h-3 w-3 animate-spin" />
+                          : <Send className="h-3 w-3" />}
+                        <span className="ml-1 hidden sm:inline">{guest.invitation_sent ? 'Resend' : 'Send invite'}</span>
+                      </Button>
+                    )}
                     {guest.invite_token && (
                       <Button size="sm" variant="outline" onClick={() => copyInviteLink(guest.invite_token!)}>
                         {copiedToken === guest.invite_token ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}

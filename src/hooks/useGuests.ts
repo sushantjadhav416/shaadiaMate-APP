@@ -88,12 +88,32 @@ export const useGuests = (eventId?: string) => {
     },
   });
 
+  const sendInviteMutation = useMutation({
+    mutationFn: async (guestId: string) => {
+      const { data, error } = await supabase.functions.invoke('guest-management', {
+        body: { action: 'send-invite', guestId, appUrl: window.location.origin },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests'] });
+      toast({ title: 'Invitation email sent' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Could not send invitation', description: error.message, variant: 'destructive' });
+    },
+  });
+
   return {
     guests: guestsQuery.data || [],
     isLoading: guestsQuery.isLoading,
     addGuest: addGuestMutation.mutate,
     updateGuest: updateGuestMutation.mutate,
     deleteGuest: deleteGuestMutation.mutate,
+    sendInvite: sendInviteMutation.mutate,
+    isSendingInvite: sendInviteMutation.isPending,
+    sendingInviteId: sendInviteMutation.variables as string | undefined,
     isAdding: addGuestMutation.isPending,
     isUpdating: updateGuestMutation.isPending,
     isDeleting: deleteGuestMutation.isPending,
