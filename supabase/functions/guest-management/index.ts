@@ -106,14 +106,6 @@ Deno.serve(async (req) => {
       }
 
       case 'claim-invite': {
-        break;
-      }
-
-      case 'unused-placeholder': {
-        break;
-      }
-
-      case 'claim-invite-real': {
         const { inviteToken } = params;
         // Find guest by invite token
         const { data: guest, error: findError } = await supabase
