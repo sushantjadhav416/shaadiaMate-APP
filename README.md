@@ -8,7 +8,7 @@ Instead of juggling WhatsApp groups, Excel files, phone calls, and memory, Shaad
 
 ---
 
-## 🧠 What Is Vibe Coding?
+## 🧠 Product Design with Vibe Coding
 
 **Vibe Coding** is a modern development approach where:
 - AI acts as a **co-planner and reasoning partner**
